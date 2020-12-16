@@ -170,7 +170,13 @@ function mkTopStatRow() {
       value: utils.getMostActiveLanguage(State.obj),
       icon: "code",
       textType: "success"
-    }
+    },
+    {
+      name: "My card",
+      value: 500,
+      icon: "code",
+      textType: "success"
+    }      
   ].map(conf => {
     return m("div.col-xl-3.col-md-6.mb-4", m(mkSingleStatCard(conf)));
   });
