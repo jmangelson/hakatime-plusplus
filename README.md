@@ -1,9 +1,23 @@
-# hakatime
 
-[![CircleCI](https://circleci.com/gh/mujx/hakatime.svg?style=svg)](https://circleci.com/gh/mujx/hakatime)
+
+# hakatime++
+
+Hakatime++ is a fork of hakatime that incorporates the ability to manualy enter timing information and then correlate
+that with automatically detected timing info (from wakatime clients). We also plan to add functionality for manual tracking
+of tasks and goals.
+
+
+
+# Below this point is a copy of the hakatime README
+
+<!--
+
+//[![CircleCI](https://circleci.com/gh/mujx/hakatime.svg?style=svg)](https://circleci.com/gh/mujx/hakatime)
 [![Docker build](https://img.shields.io/docker/cloud/build/mujx/hakatime)](https://hub.docker.com/r/mujx/hakatime/builds)
 [![BuiltWithNix](https://img.shields.io/badge/Built_With-Nix-5277C3.svg?logo=nixos&labelColor=73C3D5)](https://nixos.org/)
 [![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](http://unlicense.org/)
+
+-->
 
 Hakatime is a server implementation of [Wakatime](https://wakatime.com/). It provides a single API endpoint
 (`/api/v1/users/current/heartbeats.bulk`) that the Wakatime client can use to send heartbeats containing info
