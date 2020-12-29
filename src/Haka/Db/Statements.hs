@@ -23,6 +23,7 @@ module Haka.Db.Statements
     insertToken,
     createAccessTokens,
     deleteExpiredTokens,
+    insertClass,
   )
 where
 
@@ -448,3 +449,13 @@ getTimeline = Statement query params result True
         <*> (D.column . D.nonNullable) D.timestamptz
     result :: D.Result [TimelineRow]
     result = D.rowList tRow
+
+
+insertClass :: Statement Text ()
+insertClass = Statement query (E.param (E.nonNullable E.text)) D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        INSERT INTO classes (name) VALUES ( $1 ) ON CONFLICT DO NOTHING;
+      |]

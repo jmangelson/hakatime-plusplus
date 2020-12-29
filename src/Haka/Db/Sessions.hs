@@ -17,6 +17,7 @@ module Haka.Db.Sessions
     deleteTokens,
     getBadgeLinkInfo,
     createAccessTokens,
+    insertClass,
   )
 where
 
@@ -160,3 +161,8 @@ createAPIToken usr = do
   newToken <- liftIO Utils.randomToken
   statement (usr, Utils.toBase64 newToken) Statements.createAPIToken
   pure newToken
+
+insertClass :: Text -> Session ()
+insertClass class_name = do
+  statement class_name Statements.insertClass
+

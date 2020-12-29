@@ -1,11 +1,11 @@
 version: "3"
 services:
   server:
-    container_name: hakatime
+    container_name: hakatimepp
     image: jmangelson/hakatimepp:test0.1
     environment:
       # DB settings.
-      HAKA_DB_HOST: haka_db
+      HAKA_DB_HOST: haka_db_test
       HAKA_DB_PORT: 5432
       HAKA_DB_NAME: test
       HAKA_DB_PASS: test
@@ -20,7 +20,7 @@ services:
     ports:
       - "127.0.0.1:8090:8080"
   haka_db:
-    container_name: haka_db
+    container_name: haka_db_test
     image: postgres:11-alpine
     environment:
       POSTGRES_DB: test

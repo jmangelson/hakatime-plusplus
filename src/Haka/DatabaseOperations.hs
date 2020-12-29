@@ -20,6 +20,7 @@ module Haka.DatabaseOperations
     DatabaseException (..),
     createAuthTokens,
     refreshAuthTokens,
+    updateClassConfiguration,
   )
 where
 
@@ -87,6 +88,8 @@ data Database m a where
   CreateBadgeLink :: HqPool.Pool -> Text -> Text -> Database m UUID
   -- | Find the user/project combination from the badge id.
   GetBadgeLinkInfo :: HqPool.Pool -> UUID -> Database m BadgeRow
+  -- | Find the user/project combination from the badge id.
+  UpdateClassConfig :: HqPool.Pool -> Text -> Text -> Database m ()
 
 mkTokenData :: Text -> IO TokenData
 mkTokenData user = do
@@ -175,6 +178,9 @@ interpretDatabaseIO =
     GetBadgeLinkInfo pool badgeId -> do
       res <- liftIO $ HqPool.use pool (Sessions.getBadgeLinkInfo badgeId)
       either (throw . SessionException) pure res
+    UpdateClassConfig pool className reqType -> do
+      res <- liftIO $ HqPool.use pool (Sessions.insertClass className)
+      either (throw . SessionException) pure res      
 
 makeSem ''Database
 
@@ -373,3 +379,20 @@ mkBadgeLink pool proj token = do
   case retrievedUser of
     Nothing -> throw UserNotFound
     Just user -> createBadgeLink pool user proj
+
+updateClassConfiguration ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Text ->
+  Text ->
+  Sem r ()  
+updateClassConfiguration pool token className reqType = do
+  retrievedUser <- getUser pool token
+  case retrievedUser of
+    Nothing -> throw UserNotFound
+    Just user -> updateClassConfig pool className reqType
+  
