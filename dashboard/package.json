@@ -28,7 +28,9 @@
     "jquery": "3.5.1",
     "litepicker": "1.5.7",
     "lodash": "4.17.20",
-    "mithril": "2.0.4",
+    "mithril": "^2.0.4",
+    "mithril-table": "^0.2.2",
+    "polythene-mithril": "^1.7.4",
     "popper.js": "1.16.1",
     "startbootstrap-sb-admin-2": "4.1.1",
     "typeface-nunito": "1.1.3"

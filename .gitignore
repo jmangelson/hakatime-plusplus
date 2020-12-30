@@ -23,3 +23,7 @@ cabal.project.local~
 result
 
 
+package-lock.json
+dashboard/package-lock.json
+node_modules/
+*~

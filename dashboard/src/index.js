@@ -5,6 +5,7 @@ import * as auth from "./auth.js";
 import Dashboard from "./components/dashboard.js";
 import Overview from "./components/overview.js";
 import Projects from "./components/projects.js";
+import Config from "./components/setup-config.js";
 import Login from "./components/login.js";
 import Register from "./components/register.js";
 
@@ -41,8 +42,13 @@ export function main() {
     },
     "/app/projects": {
       render: function () {
-        return m(Dashboard, m(Projects));
+       return m(Dashboard, m(Projects));
       }
-    }
+    },
+    "/app/config": {
+      render: function () {
+       return m(Dashboard, m(Config));
+      }
+    }      
   });
 }

@@ -55,6 +55,7 @@ library libhaka
   other-modules:       Haka.AesonHelpers
                      , Haka.Authentication
                      , Haka.Badges
+                     , Haka.Config
                      , Haka.DatabaseOperations
                      , Haka.Db.Sessions
                      , Haka.Db.Statements
