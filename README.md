@@ -2,9 +2,9 @@
 
 # hakatime++
 
-Hakatime++ is a fork of hakatime that incorporates the ability to manualy enter timing information and then correlate
-that with automatically detected timing info (from wakatime clients). We also plan to add functionality for manual tracking
-of tasks and goals.
+Hakatime++ is a fork of hakatime that incorporates the ability to manually enter timing information and then correlate
+that information with automatically detected timing info (from wakatime clients). We also plan to add functionality for 
+manual tracking of tasks and goals.
 
 
 
