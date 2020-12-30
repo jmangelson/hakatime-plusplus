@@ -18,7 +18,7 @@ gen-nix:
 	cabal2nix --no-haddock --no-check . > default.nix
 
 build-img:
-	docker build -t hakatime:latest .
+	docker build -t hakatime-plus-plus:latest .
 
 arm:
 	docker buildx build --platform=linux/arm,linux/arm64 -f Dockerfile.arm . -t mujx/hakatime:latest-arm --push

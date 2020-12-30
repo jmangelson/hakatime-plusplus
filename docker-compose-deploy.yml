@@ -2,7 +2,7 @@ version: "3"
 services:
   server:
     container_name: hakatimepp
-    image: jmangelson/hakatimepp:test0.1
+    image: hakatime-plus-plus:latest
     environment:
       # DB settings.
       HAKA_DB_HOST: haka_db_test
