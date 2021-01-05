@@ -462,7 +462,7 @@ export default {
     }
   },
   view: () => {
-    document.title = "Hakatime | Projects";
+    document.title = "Hakatime++ | Coding Projects/Documents";
 
     if (LocalState.obj == null) {
       return m("div.spinner", [
@@ -475,7 +475,7 @@ export default {
     const toolbar = m("div.d-sm-flex.mb-4", [
       m(
         "h1.h3.mb-0.mr-auto.text-gray-800",
-        LocalState.currentProject ? LocalState.currentProject : "Projects"
+        LocalState.currentProject ? LocalState.currentProject : "Coding Projects/Documents"
       ),
       m("div.dropdown.mr-2", [
         m(

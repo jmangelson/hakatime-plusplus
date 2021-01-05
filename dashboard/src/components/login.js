@@ -13,7 +13,7 @@ const ErrMsg = {
 
 export default {
   oncreate: () => {
-    document.title = "Hakatime | Login";
+    document.title = "Hakatime++ | Login";
 
     if (isLoggedIn()) {
       m.route.set("/app");

@@ -297,7 +297,7 @@ function clickLogout(e) {
 
 export default {
   onint: () => {
-    document.title = "Hakatime | Dashboard";
+    document.title = "Hakatime++ | Dashboard";
   },
   oncreate: () => {
     $('[data-toggle="tooltip"]').tooltip();
@@ -305,12 +305,12 @@ export default {
   view: vnode => {
     const sideMenuItems = [
       {
-        name: "Overview",
+        name: "Coding Overview",
         icon: "tachometer-alt",
         link: "/app"
       },
       {
-        name: "Projects",
+        name: "Coding Proj. & Doc. Details",
         icon: "book",
         link: "/app/projects"
       },
@@ -342,7 +342,7 @@ export default {
             "a.sidebar-brand.d-flex.align-items-center.justify-content-center[href=#]",
             [
               m("div.sidebar-brand-icon", m("i.fas.fa-code")),
-              m("div.sidebar-brand-text.mx-3", "Hakatime")
+              m("div.sidebar-brand-text.mx-3", "Hakatime++")
             ]
           ),
           m("hr.sidebar-divider.my-0"),

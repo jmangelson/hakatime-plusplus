@@ -21,6 +21,17 @@ module Haka.DatabaseOperations
     createAuthTokens,
     refreshAuthTokens,
     updateClassConfiguration,
+    getClassList,
+    updateTaskStateConfiguration,
+    getTaskStateList,
+    updateGoalClassConfiguration,
+    getGoalClassList,        
+    updateMajCatConfiguration,
+    getMajCatList,
+    updateSubCatConfiguration,
+    getSubCatList,
+    updateSubSubCatConfiguration,
+    getSubSubCatList,            
   )
 where
 
@@ -28,6 +39,7 @@ import Control.Monad.IO.Class (liftIO)
 import Data.Int (Int64)
 import Data.Text (Text, pack)
 import Data.Time.Clock (UTCTime)
+import Debug.Trace
 import qualified Haka.Db.Sessions as Sessions
 import Haka.Errors (DatabaseException (..))
 import qualified Haka.PasswordUtils as PUtils
@@ -41,6 +53,9 @@ import Haka.Types
     StoredApiToken,
     TimelineRow (..),
     TokenData (..),
+    MajorCategoriesRow (..),
+    SubCategoriesRow (..),
+    SubSubCategoriesRow (..),    
   )
 import qualified Haka.Utils as Utils
 import qualified Hasql.Pool as HqPool
@@ -88,8 +103,32 @@ data Database m a where
   CreateBadgeLink :: HqPool.Pool -> Text -> Text -> Database m UUID
   -- | Find the user/project combination from the badge id.
   GetBadgeLinkInfo :: HqPool.Pool -> UUID -> Database m BadgeRow
-  -- | Find the user/project combination from the badge id.
-  UpdateClassConfig :: HqPool.Pool -> Text -> Text -> Database m ()
+  -- | Update the Class config
+  UpdateClassConfig :: HqPool.Pool -> Text -> Text -> Text -> Database m ()
+  -- | Update the Class config
+  GetClassListing :: HqPool.Pool -> Text -> Database m [Text]
+  -- | Update the TaskState config
+  UpdateTaskStateConfig :: HqPool.Pool -> Text -> Text -> Text -> Database m ()
+  -- | Update the TaskState config
+  GetTaskStateListing :: HqPool.Pool -> Text -> Database m [Text]
+  -- | Update the GoalClass config
+  UpdateGoalClassConfig :: HqPool.Pool -> Text -> Text -> Text -> Database m ()
+  -- | Update the GoalClass config
+  GetGoalClassListing :: HqPool.Pool -> Text -> Database m [Text]    
+  -- | Update the MajCat config  
+  UpdateMajCatConfig :: HqPool.Pool -> Text -> Text -> Text -> Database m ()
+  -- | Update the MajCat config
+  GetMajCatListing :: HqPool.Pool -> Text -> Database m [MajorCategoriesRow]
+  -- | Update the SubCat config  
+  UpdateSubCatConfig :: HqPool.Pool -> Text -> Text -> Text -> Int64 -> Database m ()
+  -- | Update the SubCat config
+  GetSubCatListing :: HqPool.Pool -> Text -> Database m [SubCategoriesRow]
+  -- | Update the SubSubCat config  
+  UpdateSubSubCatConfig :: HqPool.Pool -> Text -> Text -> Text -> Int64 -> Int64 -> Database m ()
+  -- | Update the SubSubCat config
+  GetSubSubCatListing :: HqPool.Pool -> Text -> Database m [SubSubCategoriesRow]    
+
+
 
 mkTokenData :: Text -> IO TokenData
 mkTokenData user = do
@@ -178,9 +217,44 @@ interpretDatabaseIO =
     GetBadgeLinkInfo pool badgeId -> do
       res <- liftIO $ HqPool.use pool (Sessions.getBadgeLinkInfo badgeId)
       either (throw . SessionException) pure res
-    UpdateClassConfig pool className reqType -> do
-      res <- liftIO $ HqPool.use pool (Sessions.insertClass className)
-      either (throw . SessionException) pure res      
+    UpdateClassConfig pool user reqType className -> do
+      res <- liftIO $ HqPool.use pool (Sessions.updateClassConfig user reqType className)
+      either (throw . SessionException) pure res
+    GetClassListing pool user -> do
+      res <- liftIO $ HqPool.use pool (Sessions.getClassList user)
+      either (throw . SessionException) pure res
+    UpdateTaskStateConfig pool user reqType className -> do
+      res <- liftIO $ HqPool.use pool (Sessions.updateTaskStateConfig user reqType className)
+      either (throw . SessionException) pure res
+    GetTaskStateListing pool user -> do
+      res <- liftIO $ HqPool.use pool (Sessions.getTaskStateList user)
+      either (throw . SessionException) pure res
+    UpdateGoalClassConfig pool user reqType className -> do
+      res <- liftIO $ HqPool.use pool (Sessions.updateGoalClassConfig user reqType className)
+      either (throw . SessionException) pure res
+    GetGoalClassListing pool user -> do
+      res <- liftIO $ HqPool.use pool (Sessions.getGoalClassList user)
+      either (throw . SessionException) pure res                        
+    UpdateMajCatConfig pool user reqType className -> do
+      res <- liftIO $ HqPool.use pool (Sessions.updateMajCatConfig user reqType className)
+      either (throw . SessionException) pure res
+    GetMajCatListing pool user -> do
+      res <- liftIO $ HqPool.use pool (Sessions.getMajCatList user)
+      either (throw . SessionException) pure res            
+    UpdateSubCatConfig pool user reqType className maj_cat_id -> do
+      res <- liftIO $ HqPool.use pool (Sessions.updateSubCatConfig user reqType className maj_cat_id) 
+      either (throw . SessionException) pure res
+    GetSubCatListing pool user -> do
+      res <- liftIO $ HqPool.use pool (Sessions.getSubCatList user)
+      either (throw . SessionException) pure res            
+    UpdateSubSubCatConfig pool user reqType className maj_cat_id sub_cat_id -> do
+      res <- liftIO $ HqPool.use pool (Sessions.updateSubSubCatConfig user reqType className maj_cat_id sub_cat_id) 
+      either (throw . SessionException) pure res
+    GetSubSubCatListing pool user -> do
+      res <- liftIO $ HqPool.use pool (Sessions.getSubSubCatList user)
+      either (throw . SessionException) pure res            
+
+
 
 makeSem ''Database
 
@@ -390,9 +464,176 @@ updateClassConfiguration ::
   Text ->
   Text ->
   Sem r ()  
-updateClassConfiguration pool token className reqType = do
+updateClassConfiguration pool token reqType className = do
+  retrievedUser <- trace("Getting User:")(getUser pool token)
+  case retrievedUser of
+    Nothing -> trace("Throwing user not found") (throw UserNotFound)
+    Just user -> trace("Calling updateClassConfig") (updateClassConfig pool user reqType className)
+  
+getClassList ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Sem r [Text]
+getClassList pool token = do
   retrievedUser <- getUser pool token
   case retrievedUser of
     Nothing -> throw UserNotFound
-    Just user -> updateClassConfig pool className reqType
+    Just username -> getClassListing pool username
+
+
+updateTaskStateConfiguration ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Text ->
+  Text ->
+  Sem r ()  
+updateTaskStateConfiguration pool token reqType className = do
+  retrievedUser <- trace("Getting User:")(getUser pool token)
+  case retrievedUser of
+    Nothing -> trace("Throwing user not found") (throw UserNotFound)
+    Just user -> trace("Calling updateTaskStateConfig") (updateTaskStateConfig pool user reqType className)
   
+getTaskStateList ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Sem r [Text]
+getTaskStateList pool token = do
+  retrievedUser <- getUser pool token
+  case retrievedUser of
+    Nothing -> throw UserNotFound
+    Just username -> getTaskStateListing pool username
+
+updateGoalClassConfiguration ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Text ->
+  Text ->
+  Sem r ()  
+updateGoalClassConfiguration pool token reqType className = do
+  retrievedUser <- trace("Getting User:")(getUser pool token)
+  case retrievedUser of
+    Nothing -> trace("Throwing user not found") (throw UserNotFound)
+    Just user -> trace("Calling updateGoalClassConfig") (updateGoalClassConfig pool user reqType className)
+  
+getGoalClassList ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Sem r [Text]
+getGoalClassList pool token = do
+  retrievedUser <- getUser pool token
+  case retrievedUser of
+    Nothing -> throw UserNotFound
+    Just username -> getGoalClassListing pool username        
+
+updateMajCatConfiguration ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Text ->
+  Text ->
+  Sem r ()  
+updateMajCatConfiguration pool token reqType className = do
+  retrievedUser <- trace("Getting User:")(getUser pool token)
+  case retrievedUser of
+    Nothing -> trace("Throwing user not found") (throw UserNotFound)
+    Just user -> trace("Calling updateMajCatConfig") (updateMajCatConfig pool user reqType className)
+  
+getMajCatList ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Sem r [MajorCategoriesRow]
+getMajCatList pool token = do
+  retrievedUser <- getUser pool token
+  case retrievedUser of
+    Nothing -> throw UserNotFound
+    Just username -> getMajCatListing pool username    
+
+updateSubCatConfiguration ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Text ->
+  Text ->
+  Int64 ->
+  Sem r ()  
+updateSubCatConfiguration pool token reqType className maj_cat_id = do
+  retrievedUser <- trace("Getting User:")(getUser pool token)
+  case retrievedUser of
+    Nothing -> trace("Throwing user not found") (throw UserNotFound)
+    Just user -> trace("Calling updateSubCatConfig") (updateSubCatConfig pool user reqType className maj_cat_id)
+  
+getSubCatList ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Sem r [SubCategoriesRow]
+getSubCatList pool token = do
+  retrievedUser <- getUser pool token
+  case retrievedUser of
+    Nothing -> throw UserNotFound
+    Just username -> getSubCatListing pool username
+
+updateSubSubCatConfiguration ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Text ->
+  Text ->
+  Int64 ->
+  Int64 -> 
+  Sem r ()  
+updateSubSubCatConfiguration pool token reqType className maj_cat_id sub_cat_id = do
+  retrievedUser <- trace("Getting User:")(getUser pool token)
+  case retrievedUser of
+    Nothing -> trace("Throwing user not found") (throw UserNotFound)
+    Just user -> trace("Calling updateSubSubCatConfig") (updateSubSubCatConfig pool user reqType className maj_cat_id sub_cat_id)
+  
+getSubSubCatList ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Sem r [SubSubCategoriesRow]
+getSubSubCatList pool token = do
+  retrievedUser <- getUser pool token
+  case retrievedUser of
+    Nothing -> throw UserNotFound
+    Just username -> getSubSubCatListing pool username        

@@ -3,7 +3,7 @@ import _ from "lodash";
 import path from "path";
 import ApexCharts from "apexcharts/dist/apexcharts.common";
 import Litepicker from "litepicker";
-import {EditableTable, IEditableTable} from "mithril-table";
+//import {EditableTable, IEditableTable} from "mithril-table";
 import TextField from "polythene-mithril";
 
 // Models
@@ -24,30 +24,22 @@ import * as auth from "../auth";
 function class_table() {
     return m("table", [
         m("tr", [
-            m("th", "Class Name               "),
+            m("th", "Class Name               "),m("td", "________|")
         ]),
 		ConfigState.classes.map(function(item) {
 			return m("tr", [
-				m("td", item.class_name),
+				m("td", item), m("td", " ")
 			])
 		})
     ]);
 };
 
 function mkClassConfigBox() {
-
-    // state = {
-    //     data: [{class_name: 'a'},
-    //            {class_name: 'b'},
-    //            {class_name: 'c'}]
-    // };
-            
-    
     return cards.mkCardContainer(
         "Classes",
         m("div.row", [
             class_table(),
-            m("div.col.mr-2", [
+            m("div.col.mr-2", {style: {textAlign: "right", margin: "0px"}}, [
                 m("div.row", ["Add New Class"]),
                 m("div.row", [
                     m('input',{
@@ -67,19 +59,20 @@ function mkClassConfigBox() {
                                     //TODO: Request Add Here instead of local change
                                     m.request({
                                         method: "GET",
-                                        url: "/api/v1/users/current/config/classes/" + String(new_class) + "/"  + "Add", 
+                                        url: "/api/v1/users/current/config/classes/add/" + String(new_class), 
                                         background: true,
                                         responseType:"json",
                                         headers: {
                                             authorization: auth.getHeaderToken()
                                         }
                                     })
-                                    .then(function (r) {
-                                    })
-                                    .catch(function (e) {
-                                        // TODO: Show a visual to the user
-                                        console.log(e);
-                                    });
+                                        .then(function (r) {
+                                            ConfigState.fetchCurrentConfig();
+                                        })
+                                        .catch(function (e) {
+                                            // TODO: Show a visual to the user
+                                            console.log(e);
+                                        });
                                 },
                                 role: "button"
                             },
@@ -110,9 +103,25 @@ function mkClassConfigBox() {
                                     {
                                         onclick: () => {
                                             //Requrest remove here
+                                            m.request({
+                                                method: "GET",
+                                                url: "/api/v1/users/current/config/classes/remove/" + `${r}`,
+                                                background: true,
+                                                responseType:"json",
+                                                headers: {
+                                                    authorization: auth.getHeaderToken()
+                                                }
+                                            })
+                                                .then(function (r) {
+                                                    ConfigState.fetchCurrentConfig();
+                                                })
+                                                .catch(function (e) {
+                                                    // TODO: Show a visual to the user
+                                                    console.log(e);
+                                                });
                                         }
                                     },
-                                    `${r.class_name}`
+                                    `${r}`
                                 );
                             })
                         )
@@ -120,8 +129,681 @@ function mkClassConfigBox() {
                 ])
             ]),
         ]),
+    );
+}
+
+function task_state_table() {
+    return m("table", [
+        m("tr", [
+            m("th", "Task State               "), m("td", "_______|")
+        ]),
+		ConfigState.task_states.map(function(item) {
+			return m("tr", [
+				m("td", item), m("td", " ")
+			])
+		})
+    ]);
+};
+
+function mkTaskStateConfigBox() {
+    return cards.mkCardContainer(
+        "Possible Task States",
+        m("div.row", [
+            task_state_table(),
+            m("div.col.mr-2", {style: {textAlign: "right", margin: "0px"}}, [
+                m("div.row", ["Add New Task State"]),
+                m("div.row", [
+                    m('input',{
+                        id: "newTaskStateTextbox",
+                        type: "text",
+                        onchange: newInput => {
+                            console.log("New Task State Input: " + newInput.target.value)
+                        }
+                    }),
+                    m("div.mr-1", [
+                        m(
+                            "button.btn.btn-primary[title='Add New State']",
+                            {
+                                onclick: e => {
+                                    let new_state = document.getElementById("newTaskStateTextbox").value;
+                                    //ConfigState.classes.push( {class_name: String(new_class)} );
+                                    //TODO: Request Add Here instead of local change
+                                    m.request({
+                                        method: "GET",
+                                        url: "/api/v1/users/current/config/taskstate/add/" + String(new_state), 
+                                        background: true,
+                                        responseType:"json",
+                                        headers: {
+                                            authorization: auth.getHeaderToken()
+                                        }
+                                    })
+                                        .then(function (r) {
+                                            ConfigState.fetchCurrentConfig();
+                                        })
+                                        .catch(function (e) {
+                                            // TODO: Show a visual to the user
+                                            console.log(e);
+                                        });
+                                },
+                                role: "button"
+                            },
+                            "Add"
+                        )
+                    ]),                   
+                ]),
+                m("div.row", [" "]),                
+                m("div.row", ["Remove State"]),
+                m("div.row", [
+                    m("div.dropdown.mr-2", [
+                        m(
+                            "button.btn.btn-primary.dropdown-toggle.shadow-sm[data-toggle='dropdown'][aria-haspopup='true'][aria-expanded='false']",
+                            {
+                                type: "button",
+                                id: "dropdownMenuButton"
+                            },
+                            [
+                                m("i.fas.fa-clock.fa-md.text-white-50.mr-2"),
+                                m("small", `Select State to Remove`)
+                            ]
+                        ),
+                        m(
+                            'div.dropdown-menu[aria-labelledby="dropdownMenuButton"]',
+                            ConfigState.task_states.map(r => {
+                                return m(
+                                    "a.btn.dropdown-item",
+                                    {
+                                        onclick: () => {
+                                            //Requrest remove here
+                                            m.request({
+                                                method: "GET",
+                                                url: "/api/v1/users/current/config/taskstate/remove/" + `${r}`,
+                                                background: true,
+                                                responseType:"json",
+                                                headers: {
+                                                    authorization: auth.getHeaderToken()
+                                                }
+                                            })
+                                                .then(function (r) {
+                                                    ConfigState.fetchCurrentConfig();
+                                                })
+                                                .catch(function (e) {
+                                                    // TODO: Show a visual to the user
+                                                    console.log(e);
+                                                });
+                                        }
+                                    },
+                                    `${r}`
+                                );
+                            })
+                        )
+                    ])
+                ])
+            ]),
+        ]),
+    );
+}
+
+function goal_class_table() {
+    return m("table", [
+        m("tr", [
+            m("th", "Goal Class Name               "), m("td", "______|")
+        ]),
+		ConfigState.goal_classes.map(function(item) {
+			return m("tr", [
+				m("td", item), m("td", " ")
+			])
+		})
+    ]);
+};
+
+function mkGoalClassConfigBox() {
+    return cards.mkCardContainer(
+        "Goal Classes",
+        m("div.row", [
+            goal_class_table(),
+            m("div.col.mr-2", {style: {textAlign: "right", margin: "0px"}}, [
+                m("div.row", ["Add New Goal Class"]),
+                m("div.row", [
+                    m('input',{
+                        id: "newGoalClassNameTextbox",
+                        type: "text",
+                        onchange: newInput => {
+                            console.log("New Goal Class Name Input: " + newInput.target.value)
+                        }
+                    }),
+                    m("div.mr-1", [
+                        m(
+                            "button.btn.btn-primary[title='Add New Goal Class']",
+                            {
+                                onclick: e => {
+                                    let new_goal_class = document.getElementById("newGoalClassNameTextbox").value;
+                                    //ConfigState.goal_classes.push( {goal_class_name: String(new_goal_class)} );
+                                    //TODO: Request Add Here instead of local change
+                                    m.request({
+                                        method: "GET",
+                                        url: "/api/v1/users/current/config/goalclasses/add/" + String(new_goal_class), 
+                                        background: true,
+                                        responseType:"json",
+                                        headers: {
+                                            authorization: auth.getHeaderToken()
+                                        }
+                                    })
+                                        .then(function (r) {
+                                            ConfigState.fetchCurrentConfig();
+                                        })
+                                        .catch(function (e) {
+                                            // TODO: Show a visual to the user
+                                            console.log(e);
+                                        });
+                                },
+                                role: "button"
+                            },
+                            "Add"
+                        )
+                    ]),                   
+                ]),
+                m("div.row", [" "]),                
+                m("div.row", ["Remove Goal Class"]),
+                m("div.row", [
+                    m("div.dropdown.mr-2", [
+                        m(
+                            "button.btn.btn-primary.dropdown-toggle.shadow-sm[data-toggle='dropdown'][aria-haspopup='true'][aria-expanded='false']",
+                            {
+                                type: "button",
+                                id: "dropdownMenuButton"
+                            },
+                            [
+                                m("i.fas.fa-clock.fa-md.text-white-50.mr-2"),
+                                m("small", `Select Goal Class to Remove`)
+                            ]
+                        ),
+                        m(
+                            'div.dropdown-menu[aria-labelledby="dropdownMenuButton"]',
+                            ConfigState.goal_classes.map(r => {
+                                return m(
+                                    "a.btn.dropdown-item",
+                                    {
+                                        onclick: () => {
+                                            //Requrest remove here
+                                            m.request({
+                                                method: "GET",
+                                                url: "/api/v1/users/current/config/goalclasses/remove/" + `${r}`,
+                                                background: true,
+                                                responseType:"json",
+                                                headers: {
+                                                    authorization: auth.getHeaderToken()
+                                                }
+                                            })
+                                                .then(function (r) {
+                                                    ConfigState.fetchCurrentConfig();
+                                                })
+                                                .catch(function (e) {
+                                                    // TODO: Show a visual to the user
+                                                    console.log(e);
+                                                });
+                                        }
+                                    },
+                                    `${r}`
+                                );
+                            })
+                        )
+                    ])
+                ])
+            ]),
+        ]),
+    );
+}
 
 
+function major_cat_table() {
+    return m("table", [
+        m("tr", [
+            m("th", "Major Category"), m("td", "_______|")
+        ]),
+		ConfigState.major_categories.map(function(item) {
+			return m("tr", [
+				m("td", `${item.mcr_name}`), m("td", " ")
+			])
+		})
+    ]);
+};
+
+function mkMajCatConfigBox() {
+    return cards.mkCardContainer(
+        "Major Categories",
+        m("div.row", [
+            major_cat_table(),
+            m("div.col.mr-2", {style: {textAlign: "right", margin: "0px"}}, [
+                m("div.row", ["Add New Major Category"]),
+                m("div.row", [
+                    m('input',{
+                        id: "newMajCatNameTextbox",
+                        type: "text",
+                        onchange: newInput => {
+                            console.log("New Major Category Input: " + newInput.target.value)
+                        }
+                    }),
+                    m("div.mr-1", [
+                        m(
+                            "button.btn.btn-primary[title='Add New Major Category']",
+                            {
+                                onclick: e => {
+                                    let new_major_cat = document.getElementById("newMajCatNameTextbox").value;
+                                    //ConfigState.major_cates.push( {major_cat_name: String(new_major_cat)} );
+                                    //TODO: Request Add Here instead of local change
+                                    m.request({
+                                        method: "GET",
+                                        url: "/api/v1/users/current/config/majcat/add/" + String(new_major_cat), 
+                                        background: true,
+                                        responseType:"json",
+                                        headers: {
+                                            authorization: auth.getHeaderToken()
+                                        }
+                                    })
+                                        .then(function (r) {
+                                            ConfigState.fetchCurrentConfig();
+                                        })
+                                        .catch(function (e) {
+                                            // TODO: Show a visual to the user
+                                            console.log(e);
+                                        });
+                                },
+                                role: "button"
+                            },
+                            "Add"
+                        )
+                    ]),                   
+                ]),
+                m("div.row", [" "]),                
+                m("div.row", ["Remove Major Category"]),
+                m("div.row", [
+                    m("div.dropdown.mr-2", [
+                        m(
+                            "button.btn.btn-primary.dropdown-toggle.shadow-sm[data-toggle='dropdown'][aria-haspopup='true'][aria-expanded='false']",
+                            {
+                                type: "button",
+                                id: "dropdownMenuButton"
+                            },
+                            [
+                                m("i.fas.fa-clock.fa-md.text-white-50.mr-2"),
+                                m("small", `Select Category to Remove`)
+                            ]
+                        ),
+                        m(
+                            'div.dropdown-menu[aria-labelledby="dropdownMenuButton"]',
+                            ConfigState.major_categories.map(r => {
+                                return m(
+                                    "a.btn.dropdown-item",
+                                    {
+                                        onclick: () => {
+                                            //Requrest remove here
+                                            m.request({
+                                                method: "GET",
+                                                url: "/api/v1/users/current/config/majcat/remove/" + `${r.mcr_name}`,
+                                                background: true,
+                                                responseType:"json",
+                                                headers: {
+                                                    authorization: auth.getHeaderToken()
+                                                }
+                                            })
+                                                .then(function (r) {
+                                                    ConfigState.fetchCurrentConfig();
+                                                })
+                                                .catch(function (e) {
+                                                    // TODO: Show a visual to the user
+                                                    console.log(e);
+                                                });
+                                        }
+                                    },
+                                    `${r.mcr_name}`
+                                );
+                            })
+                        )
+                    ])
+                ])
+            ]),
+        ]),
+    );
+}
+
+function sub_cat_table() {
+    return m("table", [
+        m("tr", [
+            m("th", "Sub Category ID"),
+            m("th", " | "),
+            m("th", "Major Category"),
+            m("th", " | "),            
+            m("th", "Sub Category Name"),
+            m("td", "_______|")
+        ]),
+		ConfigState.sub_categories.map(function(item) {
+            let mcr_name = ConfigState.getMajCatName(item.scr_major_category_id);
+			return m("tr", [
+				m("td", `${item.scr_id}`),
+                m("td", " | "),                
+				m("td", mcr_name),
+                m("td", " | "),                                
+				m("td", `${item.scr_name}`),
+                m("td", " ")
+			])
+		})
+    ]);
+};
+
+function mkSubCatConfigBox() {
+    return cards.mkCardContainer(
+        "Sub Categories",
+        m("div.row", [
+            sub_cat_table(),
+            m("div.col.mr-2", {style: {textAlign: "right", margin: "0px"}}, [
+                m("div.row", ["Add New Sub Category"]),
+                m("div.row", [
+                    m('input',{
+                        id: "newSubCatNameTextbox",
+                        type: "text",
+                        onchange: newInput => {
+                            console.log("New Sub Category Input: " + newInput.target.value)
+                        }
+                    }),
+                ]),
+                m("div.row", [
+                    m("div.dropdown.mr-2", [
+                        m(
+                            "button.btn.btn-primary.dropdown-toggle.shadow-sm[data-toggle='dropdown'][aria-haspopup='true'][aria-expanded='false']",
+                            {
+                                type: "button",
+                                id: "dropdownMenuButton"
+                            },
+                            [
+                                m("i.fas.fa-clock.fa-md.text-white-50.mr-2"),
+                                m("small", `Major Category (${ConfigState.selected_maj_cat_name})`)
+                            ]
+                        ),
+                        m(
+                            'div.dropdown-menu[aria-labelledby="dropdownMenuButton"]',
+                            ConfigState.major_categories.map(r => {
+                                return m(
+                                    "a.btn.dropdown-item",
+                                    {
+                                        onclick: () => {
+                                            ConfigState.setSelectedMajCat(r.mcr_name, r.mcr_id);
+                                        }
+                                    },
+                                    `${r.mcr_name}`
+                                );
+                            })
+                        )
+                    ]),
+                ]),
+                m("div.row", [
+                    m("div.mr-1", [
+                        m(
+                            "button.btn.btn-primary[title='Add New Sub Category']",
+                            {
+                                onclick: e => {
+                                    let new_sub_cat = document.getElementById("newSubCatNameTextbox").value;
+                                    //ConfigState.sub_cates.push( {sub_cat_name: String(new_sub_cat)} );
+                                    //TODO: Request Add Here instead of local change
+                                    m.request({
+                                        method: "GET",
+                                        url: "/api/v1/users/current/config/subcat/add/" + String(new_sub_cat) + "/" + String(ConfigState.selected_maj_cat_id), 
+                                        background: true,
+                                        responseType:"json",
+                                        headers: {
+                                            authorization: auth.getHeaderToken()
+                                        }
+                                    })
+                                        .then(function (r) {
+                                            ConfigState.fetchCurrentConfig();
+                                        })
+                                        .catch(function (e) {
+                                            // TODO: Show a visual to the user
+                                            console.log(e);
+                                        });
+                                },
+                                role: "button"
+                            },
+                            "Add"
+                        )
+                    ]),                   
+                ]),
+                m("div.row", [" "]),                
+                m("div.row", ["Remove Sub Category"]),
+                m("div.row", [
+                    m("div.dropdown.mr-2", [
+                        m(
+                            "button.btn.btn-primary.dropdown-toggle.shadow-sm[data-toggle='dropdown'][aria-haspopup='true'][aria-expanded='false']",
+                            {
+                                type: "button",
+                                id: "dropdownMenuButton"
+                            },
+                            [
+                                m("i.fas.fa-clock.fa-md.text-white-50.mr-2"),
+                                m("small", `Select Sub Category to Remove`)
+                            ]
+                        ),
+                        m(
+                            'div.dropdown-menu[aria-labelledby="dropdownMenuButton"]',
+                            ConfigState.sub_categories.map(r => {
+                                return m(
+                                    "a.btn.dropdown-item",
+                                    {
+                                        onclick: () => {
+                                            //Requrest remove here
+                                            m.request({
+                                                method: "GET",
+                                                url: "/api/v1/users/current/config/subcat/remove/" + `${r.scr_name}` + `/` + `${r.scr_major_category_id}`,
+                                                background: true,
+                                                responseType:"json",
+                                                headers: {
+                                                    authorization: auth.getHeaderToken()
+                                                }
+                                            })
+                                                .then(function (r) {
+                                                    ConfigState.fetchCurrentConfig();
+                                                })
+                                                .catch(function (e) {
+                                                    // TODO: Show a visual to the user
+                                                    console.log(e);
+                                                });
+                                        }
+                                    },
+                                    `${r.scr_id}`
+                                );
+                            })
+                        )
+                    ])
+                ])
+            ]),
+        ]),
+    );
+}
+
+
+function subsub_cat_table() {
+    return m("table", [
+        m("tr", [
+            m("th", "SubSub Category ID"),
+            m("th", " | "),
+            m("th", "Major Category"),
+            m("th", " | "),
+            m("th", "Sub Category"),
+            m("th", " | "),                        
+            m("th", "Sub-Sub Category Name"),
+            m("td", "_______|")
+        ]),
+		ConfigState.subsub_categories.map(function(item) {
+            let mcr_name = ConfigState.getMajCatName(item.sscr_major_category_id);
+            let scr_name = ConfigState.getSubCatName(item.sscr_sub_category_id);            
+			return m("tr", [
+				m("td", `${item.sscr_id}`),
+                m("td", " | "),                
+				m("td", mcr_name),
+                m("td", " | "),
+				m("td", scr_name),
+                m("td", " | "),                                                
+				m("td", `${item.sscr_name}`),
+                m("td", " ")
+			])
+		})
+    ]);
+};
+
+function mkSubsubCatConfigBox() {
+    return cards.mkCardContainer(
+        "Sub-Sub Categories",
+        m("div.row", [
+            subsub_cat_table(),
+            m("div.col.mr-2", {style: {textAlign: "right", margin: "0px"}}, [
+                m("div.row", ["Add New Sub-Sub Category"]),
+                m("div.row", [
+                    m('input',{
+                        id: "newSubsubCatNameTextbox",
+                        type: "text",
+                        onchange: newInput => {
+                            console.log("New Sub-Sub Category Input: " + newInput.target.value)
+                        }
+                    }),
+                ]),
+                m("div.row", [
+                    m("div.dropdown.mr-2", [
+                        m(
+                            "button.btn.btn-primary.dropdown-toggle.shadow-sm[data-toggle='dropdown'][aria-haspopup='true'][aria-expanded='false']",
+                            {
+                                type: "button",
+                                id: "dropdownMenuButton"
+                            },
+                            [
+                                m("i.fas.fa-clock.fa-md.text-white-50.mr-2"),
+                                m("small", `Major Category (${ConfigState.selected_maj_cat_name})`)
+                            ]
+                        ),
+                        m(
+                            'div.dropdown-menu[aria-labelledby="dropdownMenuButton"]',
+                            ConfigState.major_categories.map(r => {
+                                return m(
+                                    "a.btn.dropdown-item",
+                                    {
+                                        onclick: () => {
+                                            ConfigState.setSelectedMajCat(r.mcr_name, r.mcr_id);
+                                        }
+                                    },
+                                    `${r.mcr_name}`
+                                );
+                            })
+                        )
+                    ]),
+                ]),
+                m("div.row", [
+                    m("div.dropdown.mr-2", [
+                        m(
+                            "button.btn.btn-primary.dropdown-toggle.shadow-sm[data-toggle='dropdown'][aria-haspopup='true'][aria-expanded='false']",
+                            {
+                                type: "button",
+                                id: "dropdownMenuButton"
+                            },
+                            [
+                                m("i.fas.fa-clock.fa-md.text-white-50.mr-2"),
+                                m("small", `Sub Category (${ConfigState.selected_sub_cat_name})`)
+                            ]
+                        ),
+                        m(
+                            'div.dropdown-menu[aria-labelledby="dropdownMenuButton"]',
+                            ConfigState.sub_categories.map(r => {
+                                return m(
+                                    "a.btn.dropdown-item",
+                                    {
+                                        onclick: () => {
+                                            ConfigState.setSelectedSubCat(r.scr_name, r.scr_id);
+                                        }
+                                    },
+                                    `${r.scr_name}`
+                                );
+                            })
+                        )
+                    ]),
+                ]),                
+                m("div.row", [
+                    m("div.mr-1", [
+                        m(
+                            "button.btn.btn-primary[title='Add New Sub-Sub Category']",
+                            {
+                                onclick: e => {
+                                    let new_subsub_cat = document.getElementById("newSubsubCatNameTextbox").value;
+                                    //ConfigState.subsub_cates.push( {subsub_cat_name: String(new_subsub_cat)} );
+                                    //TODO: Request Add Here instead of local change
+                                    m.request({
+                                        method: "GET",
+                                        url: "/api/v1/users/current/config/subsubcat/add/" + String(new_subsub_cat) + "/" + String(ConfigState.selected_maj_cat_id) + "/" + String(ConfigState.selected_sub_cat_id), 
+                                        background: true,
+                                        responseType:"json",
+                                        headers: {
+                                            authorization: auth.getHeaderToken()
+                                        }
+                                    })
+                                        .then(function (r) {
+                                            ConfigState.fetchCurrentConfig();
+                                        })
+                                        .catch(function (e) {
+                                            // TODO: Show a visual to the user
+                                            console.log(e);
+                                        });
+                                },
+                                role: "button"
+                            },
+                            "Add"
+                        )
+                    ]),                   
+                ]),
+                m("div.row", [" "]),                
+                m("div.row", ["Remove Sub-Sub Category"]),
+                m("div.row", [
+                    m("div.dropdown.mr-2", [
+                        m(
+                            "button.btn.btn-primary.dropdown-toggle.shadow-sm[data-toggle='dropdown'][aria-haspopup='true'][aria-expanded='false']",
+                            {
+                                type: "button",
+                                id: "dropdownMenuButton"
+                            },
+                            [
+                                m("i.fas.fa-clock.fa-md.text-white-50.mr-2"),
+                                m("small", `Select Sub-Sub Category to Remove`)
+                            ]
+                        ),
+                        m(
+                            'div.dropdown-menu[aria-labelledby="dropdownMenuButton"]',
+                            ConfigState.subsub_categories.map(r => {
+                                return m(
+                                    "a.btn.dropdown-item",
+                                    {
+                                        onclick: () => {
+                                            //Requrest remove here
+                                            m.request({
+                                                method: "GET",
+                                                url: "/api/v1/users/current/config/subsubcat/remove/" + `${r.sscr_name}` + `/` + `${r.sscr_major_category_id}` + `/` + `${r.sscr_sub_category_id}`,
+                                                background: true,
+                                                responseType:"json",
+                                                headers: {
+                                                    authorization: auth.getHeaderToken()
+                                                }
+                                            })
+                                                .then(function (r) {
+                                                    ConfigState.fetchCurrentConfig();
+                                                })
+                                                .catch(function (e) {
+                                                    // TODO: Show a visual to the user
+                                                    console.log(e);
+                                                });
+                                        }
+                                    },
+                                    `${r.sscr_id}`
+                                );
+                            })
+                        )
+                    ])
+                ])
+            ]),
+        ]),
     );
 }
 
@@ -220,7 +902,7 @@ function mkClassConfigBox() {
 // function dayRadarChart() {
 //   let _chart = null;
 
-//   return {
+//   return { 
 //     view: () => {
 //       return m("div.chart");
 //     },
@@ -554,8 +1236,6 @@ function mkClassConfigBox() {
 
 export default {
     oninit: function () {
-        console.log("HERE");
-        console.log(ConfigState.classes);        
         if (ConfigState.initialized == false ) {
             ConfigState.initConfig();
             return;
@@ -578,9 +1258,9 @@ export default {
     // }
   },
   view: () => {
-    document.title = "Hakatime | Config";
+    document.title = "Hakatime++ | Config";
 
-    if (ConfigState.classes == null) {
+    if (ConfigState.feteched == false) {
       return m("div.spinner", [
         m("div.bounce1"),
         m("div.bounce2"),
@@ -736,14 +1416,25 @@ export default {
 
     return [
       m("div.d-sm-flex.mb-4", [
-        m("h1.h3.mb-0.mr-auto.text-gray-800", "Config")]),
+          m("h1.h3.mb-0.mr-auto.text-gray-800", "Task Configuration Setup")]),
         // LocalState.currentProject ? LocalState.currentProject : "Projects"
         //      )
         //      toolbar,n
         //        m("div.row", mkTopStatRow()),
       m("div.row", [
-        mkClassConfigBox()
+          m("div.col-xl-6", mkClassConfigBox()),
+          m("div.col-xl-6", mkTaskStateConfigBox()),
       ]),
+      m("div.d-sm-flex.mb-4", [
+        m("h1.h3.mb-0.mr-auto.text-gray-800", "Category Configuration Setup")]),
+        m("div.row", [ mkMajCatConfigBox() ]),
+        m("div.row", [ mkSubCatConfigBox() ]),
+        m("div.row", [ mkSubsubCatConfigBox() ]),
+      m("div.d-sm-flex.mb-4", [
+          m("h1.h3.mb-0.mr-auto.text-gray-800", "Goal Configuration Setup")]),
+      m("div.row", [
+         m("div.col-xl-6", mkGoalClassConfigBox())
+      ]),        
       // m("div.row", [
       //   m("div.col-xl-6", mkWeekDayRadar()),
       //   m("div.col-xl-6", mkHourDistribution())

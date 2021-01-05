@@ -17,7 +17,18 @@ module Haka.Db.Sessions
     deleteTokens,
     getBadgeLinkInfo,
     createAccessTokens,
-    insertClass,
+    updateClassConfig,
+    getClassList,
+    updateTaskStateConfig,
+    getTaskStateList,
+    updateGoalClassConfig,
+    getGoalClassList,        
+    updateMajCatConfig,
+    getMajCatList,
+    updateSubCatConfig,
+    getSubCatList,
+    updateSubSubCatConfig,
+    getSubSubCatList,            
   )
 where
 
@@ -39,12 +50,16 @@ import Haka.Types
     StoredApiToken,
     TimelineRow (..),
     TokenData (..),
+    MajorCategoriesRow (..),
+    SubCategoriesRow (..),
+    SubSubCategoriesRow (..),  
   )
 import qualified Haka.Utils as Utils
 import Hasql.Session (Session, statement)
 import qualified Hasql.Transaction as Transaction
 import Hasql.Transaction.Sessions (IsolationLevel (..), Mode (..), transaction)
 import PostgreSQL.Binary.Data (UUID)
+import Debug.Trace
 
 updateTokenUsage :: Text -> Session ()
 updateTokenUsage tkn = statement tkn Statements.updateTokenUsage
@@ -162,7 +177,81 @@ createAPIToken usr = do
   statement (usr, Utils.toBase64 newToken) Statements.createAPIToken
   pure newToken
 
-insertClass :: Text -> Session ()
-insertClass class_name = do
-  statement class_name Statements.insertClass
+updateClassConfig :: Text -> Text -> Text -> Session ()
+updateClassConfig user req_type class_name = do
+  if trace("In updateClassConfig, with req_type=" ++ show req_type ++ ", class=" ++ show class_name ++ ", user= " ++ show user) (req_type == "add")
+    then do
+         trace ("In updateClassConfig, calling Statements.insertClass with class=" ++ show class_name ++ ", user= " ++ show user) (statement (class_name, user) Statements.insertClass)
+    else if req_type == "remove"
+           then statement (class_name, user) Statements.deleteClass
+           else statement ("none", "none") Statements.deleteClass
 
+getClassList :: Text -> Session [Text]
+getClassList user = do
+  statement user Statements.getClassList
+
+updateTaskStateConfig :: Text -> Text -> Text -> Session ()
+updateTaskStateConfig user req_type class_name = do
+  if trace("In updateTaskStateConfig, with req_type=" ++ show req_type ++ ", class=" ++ show class_name ++ ", user= " ++ show user) (req_type == "add")
+    then do
+         trace ("In updateTaskStateConfig, calling Statements.insertTaskState with class=" ++ show class_name ++ ", user= " ++ show user) (statement (class_name, user) Statements.insertTaskState)
+    else if req_type == "remove"
+           then statement (class_name, user) Statements.deleteTaskState
+           else statement ("none", "none") Statements.deleteTaskState
+
+getTaskStateList :: Text -> Session [Text]
+getTaskStateList user = do
+  statement user Statements.getTaskStateList
+
+updateGoalClassConfig :: Text -> Text -> Text -> Session ()
+updateGoalClassConfig user req_type class_name = do
+  if trace("In updateGoalClassConfig, with req_type=" ++ show req_type ++ ", class=" ++ show class_name ++ ", user= " ++ show user) (req_type == "add")
+    then do
+         trace ("In updateGoalClassConfig, calling Statements.insertGoalClass with class=" ++ show class_name ++ ", user= " ++ show user) (statement (class_name, user) Statements.insertGoalClass)
+    else if req_type == "remove"
+           then statement (class_name, user) Statements.deleteGoalClass
+           else statement ("none", "none") Statements.deleteGoalClass
+
+getGoalClassList :: Text -> Session [Text]
+getGoalClassList user = do
+  statement user Statements.getGoalClassList
+
+  
+updateMajCatConfig :: Text -> Text -> Text -> Session ()
+updateMajCatConfig user req_type class_name = do
+  if trace("In updateMajCatConfig, with req_type=" ++ show req_type ++ ", class=" ++ show class_name ++ ", user= " ++ show user) (req_type == "add")
+    then do
+         trace ("In updateMajCatConfig, calling Statements.insertMajCat with class=" ++ show class_name ++ ", user= " ++ show user) (statement (class_name, user) Statements.insertMajCat)
+    else if req_type == "remove"
+           then statement (class_name, user) Statements.deleteMajCat
+           else statement ("none", "none") Statements.deleteMajCat
+
+getMajCatList :: Text -> Session [MajorCategoriesRow]
+getMajCatList user = do
+   trace("In getMajCatList, calling Statements.getMajCatList, with user=" ++ show user) (statement user Statements.getMajCatList)
+
+updateSubCatConfig :: Text -> Text -> Text -> Int64 -> Session ()
+updateSubCatConfig user req_type class_name maj_cat_id = do
+  if trace("In updateSubCatConfig, with req_type=" ++ show req_type ++ ", class=" ++ show class_name ++ ", user= " ++ show user) (req_type == "add")
+    then do
+         trace ("In updateSubCatConfig, calling Statements.insertSubCat with class=" ++ show class_name ++ ", user= " ++ show user) (statement (class_name, maj_cat_id, user) Statements.insertSubCat)
+    else if req_type == "remove"
+           then statement (class_name, maj_cat_id, user) Statements.deleteSubCat
+           else statement ("none", 0, "none") Statements.deleteSubCat
+
+getSubCatList :: Text -> Session [SubCategoriesRow]
+getSubCatList user = do
+   trace("In getSubCatList, calling Statements.getSubCatList, with user=" ++ show user) (statement user Statements.getSubCatList)
+
+updateSubSubCatConfig :: Text -> Text -> Text -> Int64 -> Int64 -> Session ()
+updateSubSubCatConfig user req_type class_name maj_cat_id sub_cat_id = do
+  if trace("In updateSubsubCatConfig, with req_type=" ++ show req_type ++ ", class=" ++ show class_name ++ ", user= " ++ show user) (req_type == "add")
+    then do
+         trace ("In updateSubSubCatConfig, calling Statements.insertSubsubCat with class=" ++ show class_name ++ ", user= " ++ show user) (statement (class_name, maj_cat_id, sub_cat_id, user) Statements.insertSubSubCat)
+    else if req_type == "remove"
+           then statement (class_name, maj_cat_id, sub_cat_id, user) Statements.deleteSubSubCat
+           else statement ("none", 0, 0, "none") Statements.deleteSubSubCat
+
+getSubSubCatList :: Text -> Session [SubSubCategoriesRow]
+getSubSubCatList user = do
+   trace("In getSubSubCatList, calling Statements.getSubSubCatList, with user=" ++ show user) (statement user Statements.getSubSubCatList)

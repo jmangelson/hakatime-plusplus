@@ -170,13 +170,7 @@ function mkTopStatRow() {
       value: utils.getMostActiveLanguage(State.obj),
       icon: "code",
       textType: "success"
-    },
-    {
-      name: "My card",
-      value: 500,
-      icon: "code",
-      textType: "success"
-    }      
+    }
   ].map(conf => {
     return m("div.col-xl-3.col-md-6.mb-4", m(mkSingleStatCard(conf)));
   });
@@ -488,7 +482,7 @@ export default {
     }
   },
   view: () => {
-    document.title = "Hakatime | Overview";
+    document.title = "Hakatime++ | Coding Overview";
 
     if (State.obj == null) {
       return m("div.spinner", [
@@ -499,7 +493,7 @@ export default {
     }
 
     const toolbar = m("div.d-flex.mb-4", [
-      m("h1.h3.mr-auto.mb-0.text-gray-800", "Overview"),
+      m("h1.h3.mr-auto.mb-0.text-gray-800", "Coding Overview"),
       m("div.dropdown.mr-2", [
         m(
           "button.btn.btn-primary.dropdown-toggle.shadow-sm[data-toggle='dropdown'][aria-haspopup='true'][aria-expanded='false']",

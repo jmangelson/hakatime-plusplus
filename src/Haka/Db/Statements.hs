@@ -23,11 +23,28 @@ module Haka.Db.Statements
     insertToken,
     createAccessTokens,
     deleteExpiredTokens,
+    getClassList,
     insertClass,
+    deleteClass,
+    getTaskStateList,
+    insertTaskState,
+    deleteTaskState,
+    getGoalClassList,
+    insertGoalClass,
+    deleteGoalClass,        
+    getMajCatList,
+    insertMajCat,
+    deleteMajCat,
+    getSubCatList,
+    insertSubCat,
+    deleteSubCat,
+    getSubSubCatList,
+    insertSubSubCat,
+    deleteSubSubCat    
   )
 where
 
-import Contravariant.Extras.Contrazip (contrazip3, contrazip4, contrazip5)
+import Contravariant.Extras.Contrazip (contrazip2, contrazip3, contrazip4, contrazip5)
 import qualified Data.ByteString as Bs
 import Data.FileEmbed
 import Data.Functor.Contravariant ((>$<))
@@ -45,6 +62,9 @@ import Haka.Types
     StoredApiToken (..),
     TimelineRow (..),
     TokenData (..),
+    MajorCategoriesRow (..),
+    SubCategoriesRow (..),
+    SubSubCategoriesRow (..),    
   )
 import qualified Hasql.Decoders as D
 import qualified Hasql.Encoders as E
@@ -451,11 +471,273 @@ getTimeline = Statement query params result True
     result = D.rowList tRow
 
 
-insertClass :: Statement Text ()
-insertClass = Statement query (E.param (E.nonNullable E.text)) D.noResult True
+getClassList :: Statement (Text) [Text]
+getClassList = Statement query (E.param (E.nonNullable E.text)) result True
   where
     query :: Bs.ByteString
     query =
       [r|
-        INSERT INTO classes (name) VALUES ( $1 ) ON CONFLICT DO NOTHING;
+        SELECT classes.name FROM classes WHERE owner = $1;
       |]
+    tRow :: D.Row Text
+    tRow = (D.column . D.nonNullable) D.text
+    result :: D.Result [Text]
+    result = D.rowList tRow
+
+
+insertClass :: Statement (Text, Text) ()
+insertClass = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        INSERT INTO classes (name, owner) VALUES ( $1, $2 ) ON CONFLICT (name, owner) DO NOTHING;
+      |]
+    params :: E.Params (Text, Text)
+    params =
+      contrazip2
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.text))
+
+deleteClass :: Statement (Text, Text) ()
+deleteClass = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        DELETE FROM classes WHERE name = $1 AND owner = $2;
+      |]
+    params :: E.Params (Text, Text)
+    params =
+      contrazip2
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.text))
+
+getTaskStateList :: Statement (Text) [Text]
+getTaskStateList = Statement query (E.param (E.nonNullable E.text)) result True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        SELECT task_states.name FROM task_states WHERE owner = $1;
+      |]
+    tRow :: D.Row Text
+    tRow = (D.column . D.nonNullable) D.text
+    result :: D.Result [Text]
+    result = D.rowList tRow
+
+
+insertTaskState :: Statement (Text, Text) ()
+insertTaskState = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        INSERT INTO task_states (name, owner) VALUES ( $1, $2 ) ON CONFLICT (name, owner) DO NOTHING;
+      |]
+    params :: E.Params (Text, Text)
+    params =
+      contrazip2
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.text))
+
+deleteTaskState :: Statement (Text, Text) ()
+deleteTaskState = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        DELETE FROM task_states WHERE name = $1 AND owner = $2;
+      |]
+    params :: E.Params (Text, Text)
+    params =
+      contrazip2
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.text))        
+
+getGoalClassList :: Statement (Text) [Text]
+getGoalClassList = Statement query (E.param (E.nonNullable E.text)) result True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        SELECT goal_classes.name FROM goal_classes WHERE owner = $1;
+      |]
+    tRow :: D.Row Text
+    tRow = (D.column . D.nonNullable) D.text
+    result :: D.Result [Text]
+    result = D.rowList tRow
+
+
+insertGoalClass :: Statement (Text, Text) ()
+insertGoalClass = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        INSERT INTO goal_classes (name, owner) VALUES ( $1, $2 ) ON CONFLICT (name, owner) DO NOTHING;
+      |]
+    params :: E.Params (Text, Text)
+    params =
+      contrazip2
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.text))
+
+deleteGoalClass :: Statement (Text, Text) ()
+deleteGoalClass = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        DELETE FROM goal_classes WHERE name = $1 AND owner = $2;
+      |]
+    params :: E.Params (Text, Text)
+    params =
+      contrazip2
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.text))        
+
+getMajCatList :: Statement (Text) [MajorCategoriesRow]
+getMajCatList = Statement query (E.param (E.nonNullable E.text)) result True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        SELECT id, name, owner FROM major_categories WHERE owner = $1;
+      |]
+    majCatRow :: D.Row MajorCategoriesRow
+    majCatRow =
+      MajorCategoriesRow
+        <$> (D.column . D.nonNullable) D.int8 --D.numeric
+        <*> (D.column . D.nonNullable) D.text
+        <*> (D.column . D.nonNullable) D.text        
+    result :: D.Result [MajorCategoriesRow]
+    result = D.rowList majCatRow    
+
+insertMajCat :: Statement (Text, Text) ()
+insertMajCat = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        INSERT INTO major_categories (name, owner) VALUES ( $1, $2 ) ON CONFLICT (name, owner) DO NOTHING;
+      |]
+    params :: E.Params (Text, Text)
+    params =
+      contrazip2
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.text))
+
+deleteMajCat :: Statement (Text, Text) ()
+deleteMajCat = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        DELETE FROM major_categories WHERE name = $1 AND owner = $2;
+      |]
+    params :: E.Params (Text, Text)
+    params =
+      contrazip2
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.text))
+
+getSubCatList :: Statement (Text) [SubCategoriesRow]
+getSubCatList = Statement query (E.param (E.nonNullable E.text)) result True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        SELECT id, name, major_category_id, owner FROM sub_categories WHERE owner = $1;
+      |]
+    subCatRow :: D.Row SubCategoriesRow
+    subCatRow =
+      SubCategoriesRow
+        <$> (D.column . D.nonNullable) D.int8
+        <*> (D.column . D.nonNullable) D.text
+        <*> (D.column . D.nonNullable) D.int8
+        <*> (D.column . D.nonNullable) D.text        
+    result :: D.Result [SubCategoriesRow]
+    result = D.rowList subCatRow    
+
+insertSubCat :: Statement (Text, Int64, Text) ()
+insertSubCat = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        INSERT INTO sub_categories (name, major_category_id, owner) VALUES ( $1, $2, $3 ) ON CONFLICT (name, major_category_id, owner) DO NOTHING;
+      |]
+    params :: E.Params (Text, Int64, Text)
+    params =
+      contrazip3
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.int8))        
+        (E.param (E.nonNullable E.text))        
+
+deleteSubCat :: Statement (Text, Int64, Text) ()
+deleteSubCat = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        DELETE FROM sub_categories WHERE name = $1 AND major_category_id = $2 and owner = $3;
+      |]
+    params :: E.Params (Text, Int64, Text)
+    params =
+      contrazip3
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.int8))        
+        (E.param (E.nonNullable E.text))
+
+
+getSubSubCatList :: Statement (Text) [SubSubCategoriesRow]
+getSubSubCatList = Statement query (E.param (E.nonNullable E.text)) result True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        SELECT id, name, major_category_id, sub_category_id, owner FROM sub_sub_categories WHERE owner = $1;
+      |]
+    subCatRow :: D.Row SubSubCategoriesRow
+    subCatRow =
+      SubSubCategoriesRow
+        <$> (D.column . D.nonNullable) D.int8
+        <*> (D.column . D.nonNullable) D.text
+        <*> (D.column . D.nonNullable) D.int8
+        <*> (D.column . D.nonNullable) D.int8        
+        <*> (D.column . D.nonNullable) D.text        
+    result :: D.Result [SubSubCategoriesRow]
+    result = D.rowList subCatRow    
+
+insertSubSubCat :: Statement (Text, Int64, Int64, Text) ()
+insertSubSubCat = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        INSERT INTO sub_sub_categories (name, major_category_id, sub_category_id, owner) VALUES ( $1, $2, $3, $4 ) ON CONFLICT (name, major_category_id, sub_category_id, owner) DO NOTHING;
+      |]
+    params :: E.Params (Text, Int64, Int64, Text)
+    params =
+      contrazip4
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.int8))
+        (E.param (E.nonNullable E.int8))                
+        (E.param (E.nonNullable E.text))        
+
+deleteSubSubCat :: Statement (Text, Int64, Int64, Text) ()
+deleteSubSubCat = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        DELETE FROM sub_sub_categories WHERE name = $1 AND major_category_id = $2 AND sub_category_id = $3 and owner = $4;
+      |]
+    params :: E.Params (Text, Int64, Int64, Text)
+    params =
+      contrazip4
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.int8))
+        (E.param (E.nonNullable E.int8))                
+        (E.param (E.nonNullable E.text))           

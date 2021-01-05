@@ -22,7 +22,8 @@ module Haka.Types
     RegisteredUser (..),
     StatRow (..),
     TimelineRow (..),
-    ProjectStatRow (..),
+    ProjectStatRow
+    (..),
     AppCtx (..),
     LogState (..),
     AppM,
@@ -30,6 +31,10 @@ module Haka.Types
     mkAppT,
     AppT (..),
     TokenData (..),
+    ConfigPayload (..),
+    MajorCategoriesRow (..),
+    SubCategoriesRow (..),
+    SubSubCategoriesRow (..),
   )
 where
 
@@ -421,3 +426,64 @@ data RequestConfig = RequestConfig
     machineName :: Maybe Text
   }
   deriving (Show)
+
+-------------------------------------------------
+-- Configuration
+
+-- Major Categories Row
+data MajorCategoriesRow = MajorCategoriesRow
+  {
+    mcr_id :: Int64,
+    mcr_name :: Text,
+    mcr_owner :: Text
+  }
+  deriving (Eq, Show, Generic)
+
+instance ToJSON MajorCategoriesRow
+instance FromJSON MajorCategoriesRow
+
+-- Sub Categories Row
+data SubCategoriesRow = SubCategoriesRow
+  {
+    scr_id :: Int64,
+    scr_name :: Text,
+    scr_major_category_id :: Int64,
+    scr_owner :: Text    
+  }
+  deriving (Eq, Show, Generic)
+
+instance ToJSON SubCategoriesRow
+instance FromJSON SubCategoriesRow
+
+-- Sub Sub Categories Row
+data SubSubCategoriesRow = SubSubCategoriesRow
+  {
+    sscr_id :: Int64,
+    sscr_name :: Text,
+    sscr_major_category_id :: Int64,
+    sscr_sub_category_id :: Int64,
+    sscr_owner :: Text    
+  }
+  deriving (Eq, Show, Generic)
+
+instance ToJSON SubSubCategoriesRow
+instance FromJSON SubSubCategoriesRow
+
+
+-- Full Configuration Payload
+data ConfigPayload = ConfigPayload
+  {
+    -- | List of Classes
+    classes :: [Text],
+    major_categories :: [MajorCategoriesRow],
+    sub_categories :: [SubCategoriesRow],
+    sub_sub_categories :: [SubSubCategoriesRow],
+    task_states :: [Text],
+    goal_classes :: [Text]
+  }
+  deriving (Show, Generic)
+
+instance ToJSON ConfigPayload
+instance FromJSON ConfigPayload
+
+
