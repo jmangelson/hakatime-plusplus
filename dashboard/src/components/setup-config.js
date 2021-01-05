@@ -1425,11 +1425,12 @@ export default {
           m("div.col-xl-6", mkClassConfigBox()),
           m("div.col-xl-6", mkTaskStateConfigBox()),
       ]),
-      m("div.d-sm-flex.mb-4", [
-        m("h1.h3.mb-0.mr-auto.text-gray-800", "Category Configuration Setup")]),
-        m("div.row", [ mkMajCatConfigBox() ]),
-        m("div.row", [ mkSubCatConfigBox() ]),
-        m("div.row", [ mkSubsubCatConfigBox() ]),
+        m("div.d-sm-flex.mb-4", [ m("h1.h3.mb-0.mr-auto.text-gray-800", "Category Configuration Setup")]),
+        m("div.col-xl-12",[         
+            m("div.row", [ mkMajCatConfigBox() ]),
+            m("div.row", [ mkSubCatConfigBox() ]),
+            m("div.row", [ mkSubsubCatConfigBox() ]),
+        ]),
       m("div.d-sm-flex.mb-4", [
           m("h1.h3.mb-0.mr-auto.text-gray-800", "Goal Configuration Setup")]),
       m("div.row", [
