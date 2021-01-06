@@ -31,7 +31,13 @@ module Haka.DatabaseOperations
     updateSubCatConfiguration,
     getSubCatList,
     updateSubSubCatConfiguration,
-    getSubSubCatList,            
+    getSubSubCatList,
+    updateProjListConfiguration,
+    getProjListList,
+    updateTaskListConfiguration,
+    getTaskListList,
+    updateContextConfiguration,
+    getContextList,    
   )
 where
 
@@ -55,7 +61,10 @@ import Haka.Types
     TokenData (..),
     MajorCategoriesRow (..),
     SubCategoriesRow (..),
-    SubSubCategoriesRow (..),    
+    SubSubCategoriesRow (..),
+    ProjectListsRow (..),
+    TaskListsRow (..),
+    ContextsRow (..),     
   )
 import qualified Haka.Utils as Utils
 import qualified Hasql.Pool as HqPool
@@ -127,7 +136,18 @@ data Database m a where
   UpdateSubSubCatConfig :: HqPool.Pool -> Text -> Text -> Text -> Int64 -> Int64 -> Database m ()
   -- | Update the SubSubCat config
   GetSubSubCatListing :: HqPool.Pool -> Text -> Database m [SubSubCategoriesRow]    
-
+  -- | Update the ProjList config  
+  UpdateProjListConfig :: HqPool.Pool -> Text -> Text -> Text -> Database m ()
+  -- | Update the ProjList config
+  GetProjListListing :: HqPool.Pool -> Text -> Database m [ProjectListsRow]
+  -- | Update the TaskList config  
+  UpdateTaskListConfig :: HqPool.Pool -> Text -> Text -> Text -> Database m ()
+  -- | Update the TaskList config
+  GetTaskListListing :: HqPool.Pool -> Text -> Database m [TaskListsRow]
+  -- | Update the Context config  
+  UpdateContextConfig :: HqPool.Pool -> Text -> Text -> Text -> Database m ()
+  -- | Update the Context config
+  GetContextListing :: HqPool.Pool -> Text -> Database m [ContextsRow]  
 
 
 mkTokenData :: Text -> IO TokenData
@@ -254,6 +274,24 @@ interpretDatabaseIO =
       res <- liftIO $ HqPool.use pool (Sessions.getSubSubCatList user)
       either (throw . SessionException) pure res            
 
+    UpdateProjListConfig pool user reqType className -> do
+      res <- liftIO $ HqPool.use pool (Sessions.updateProjListConfig user reqType className)
+      either (throw . SessionException) pure res
+    GetProjListListing pool user -> do
+      res <- liftIO $ HqPool.use pool (Sessions.getProjListList user)
+      either (throw . SessionException) pure res
+    UpdateTaskListConfig pool user reqType className -> do
+      res <- liftIO $ HqPool.use pool (Sessions.updateTaskListConfig user reqType className)
+      either (throw . SessionException) pure res
+    GetTaskListListing pool user -> do
+      res <- liftIO $ HqPool.use pool (Sessions.getTaskListList user)
+      either (throw . SessionException) pure res
+    UpdateContextConfig pool user reqType className -> do
+      res <- liftIO $ HqPool.use pool (Sessions.updateContextConfig user reqType className)
+      either (throw . SessionException) pure res
+    GetContextListing pool user -> do
+      res <- liftIO $ HqPool.use pool (Sessions.getContextList user)
+      either (throw . SessionException) pure res                  
 
 
 makeSem ''Database
@@ -636,4 +674,95 @@ getSubSubCatList pool token = do
   retrievedUser <- getUser pool token
   case retrievedUser of
     Nothing -> throw UserNotFound
-    Just username -> getSubSubCatListing pool username        
+    Just username -> getSubSubCatListing pool username
+
+
+updateProjListConfiguration ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Text ->
+  Text ->
+  Sem r ()  
+updateProjListConfiguration pool token reqType className = do
+  retrievedUser <- trace("Getting User:")(getUser pool token)
+  case retrievedUser of
+    Nothing -> trace("Throwing user not found") (throw UserNotFound)
+    Just user -> trace("Calling updateProjListConfig") (updateProjListConfig pool user reqType className)
+  
+getProjListList ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Sem r [ProjectListsRow]
+getProjListList pool token = do
+  retrievedUser <- getUser pool token
+  case retrievedUser of
+    Nothing -> throw UserNotFound
+    Just username -> getProjListListing pool username
+
+updateTaskListConfiguration ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Text ->
+  Text ->
+  Sem r ()  
+updateTaskListConfiguration pool token reqType className = do
+  retrievedUser <- trace("Getting User:")(getUser pool token)
+  case retrievedUser of
+    Nothing -> trace("Throwing user not found") (throw UserNotFound)
+    Just user -> trace("Calling updateTaskListConfig") (updateTaskListConfig pool user reqType className)
+  
+getTaskListList ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Sem r [TaskListsRow]
+getTaskListList pool token = do
+  retrievedUser <- getUser pool token
+  case retrievedUser of
+    Nothing -> throw UserNotFound
+    Just username -> getTaskListListing pool username        
+
+updateContextConfiguration ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Text ->
+  Text ->
+  Sem r ()  
+updateContextConfiguration pool token reqType className = do
+  retrievedUser <- trace("Getting User:")(getUser pool token)
+  case retrievedUser of
+    Nothing -> trace("Throwing user not found") (throw UserNotFound)
+    Just user -> trace("Calling updateContextConfig") (updateContextConfig pool user reqType className)
+  
+getContextList ::
+  forall r.
+  ( Member Database r,
+    Member (Error DatabaseException) r
+  ) =>
+  HqPool.Pool ->
+  ApiToken ->
+  Sem r [ContextsRow]
+getContextList pool token = do
+  retrievedUser <- getUser pool token
+  case retrievedUser of
+    Nothing -> throw UserNotFound
+    Just username -> getContextListing pool username    

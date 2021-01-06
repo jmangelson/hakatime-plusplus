@@ -36,7 +36,7 @@ function class_table() {
 
 function mkClassConfigBox() {
     return cards.mkCardContainer(
-        "Classes",
+        "Task Classes",
         m("div.row", [
             class_table(),
             m("div.col.mr-2", {style: {textAlign: "right", margin: "0px"}}, [
@@ -344,6 +344,339 @@ function mkGoalClassConfigBox() {
                                         }
                                     },
                                     `${r}`
+                                );
+                            })
+                        )
+                    ])
+                ])
+            ]),
+        ]),
+    );
+}
+
+function proj_lists_table() {
+    return m("table", [
+        m("tr", [
+            m("th", "List Name"), m("td", "_______|")
+        ]),
+		ConfigState.project_lists.map(function(item) {
+			return m("tr", [
+				m("td", `${item.pl_name}`), m("td", " ")
+			])
+		})
+    ]);
+};
+
+function mkProjListsConfigBox() {
+    return cards.mkCardContainer(
+        "Project Lists",
+        m("div.row", [
+            proj_lists_table(),
+            m("div.col.mr-2", {style: {textAlign: "right", margin: "0px"}}, [
+                m("div.row", ["Add New Project List"]),
+                m("div.row", [
+                    m('input',{
+                        id: "newProjListsNameTextbox",
+                        type: "text",
+                        onchange: newInput => {
+                            console.log("New Project List Input: " + newInput.target.value)
+                        }
+                    }),
+                    m("div.mr-1", [
+                        m(
+                            "button.btn.btn-primary[title='Add New Project List']",
+                            {
+                                onclick: e => {
+                                    let new_proj_lists = document.getElementById("newProjListsNameTextbox").value;
+                                    //ConfigState.proj_listses.push( {proj_lists_name: String(new_proj_lists)} );
+                                    //TODO: Request Add Here instead of local change
+                                    m.request({
+                                        method: "GET",
+                                        url: "/api/v1/users/current/config/projlist/add/" + String(new_proj_lists), 
+                                        background: true,
+                                        responseType:"json",
+                                        headers: {
+                                            authorization: auth.getHeaderToken()
+                                        }
+                                    })
+                                        .then(function (r) {
+                                            ConfigState.fetchCurrentConfig();
+                                        })
+                                        .catch(function (e) {
+                                            // TODO: Show a visual to the user
+                                            console.log(e);
+                                        });
+                                },
+                                role: "button"
+                            },
+                            "Add"
+                        )
+                    ]),                   
+                ]),
+                m("div.row", [" "]),                
+                m("div.row", ["Remove Project List"]),
+                m("div.row", [
+                    m("div.dropdown.mr-2", [
+                        m(
+                            "button.btn.btn-primary.dropdown-toggle.shadow-sm[data-toggle='dropdown'][aria-haspopup='true'][aria-expanded='false']",
+                            {
+                                type: "button",
+                                id: "dropdownMenuButton"
+                            },
+                            [
+                                m("i.fas.fa-clock.fa-md.text-white-50.mr-2"),
+                                m("small", `Select List to Remove`)
+                            ]
+                        ),
+                        m(
+                            'div.dropdown-menu[aria-labelledby="dropdownMenuButton"]',
+                            ConfigState.project_lists.map(r => {
+                                return m(
+                                    "a.btn.dropdown-item",
+                                    {
+                                        onclick: () => {
+                                            //Requrest remove here
+                                            m.request({
+                                                method: "GET",
+                                                url: "/api/v1/users/current/config/projlist/remove/" + `${r.pl_name}`,
+                                                background: true,
+                                                responseType:"json",
+                                                headers: {
+                                                    authorization: auth.getHeaderToken()
+                                                }
+                                            })
+                                                .then(function (r) {
+                                                    ConfigState.fetchCurrentConfig();
+                                                })
+                                                .catch(function (e) {
+                                                    // TODO: Show a visual to the user
+                                                    console.log(e);
+                                                });
+                                        }
+                                    },
+                                    `${r.pl_name}`
+                                );
+                            })
+                        )
+                    ])
+                ])
+            ]),
+        ]),
+    );
+}
+
+function task_lists_table() {
+    return m("table", [
+        m("tr", [
+            m("th", "List Name"), m("td", "_______|")
+        ]),
+		ConfigState.task_lists.map(function(item) {
+			return m("tr", [
+				m("td", `${item.tl_name}`), m("td", " ")
+			])
+		})
+    ]);
+};
+
+function mkTaskListsConfigBox() {
+    return cards.mkCardContainer(
+        "Task Lists",
+        m("div.row", [
+            task_lists_table(),
+            m("div.col.mr-2", {style: {textAlign: "right", margin: "0px"}}, [
+                m("div.row", ["Add New Task List"]),
+                m("div.row", [
+                    m('input',{
+                        id: "newTaskListsNameTextbox",
+                        type: "text",
+                        onchange: newInput => {
+                            console.log("New Task List Input: " + newInput.target.value)
+                        }
+                    }),
+                    m("div.mr-1", [
+                        m(
+                            "button.btn.btn-primary[title='Add New Task List']",
+                            {
+                                onclick: e => {
+                                    let new_task_lists = document.getElementById("newTaskListsNameTextbox").value;
+                                    //ConfigState.task_listses.push( {task_lists_name: String(new_task_lists)} );
+                                    //TODO: Request Add Here instead of local change
+                                    m.request({
+                                        method: "GET",
+                                        url: "/api/v1/users/current/config/tasklist/add/" + String(new_task_lists), 
+                                        background: true,
+                                        responseType:"json",
+                                        headers: {
+                                            authorization: auth.getHeaderToken()
+                                        }
+                                    })
+                                        .then(function (r) {
+                                            ConfigState.fetchCurrentConfig();
+                                        })
+                                        .catch(function (e) {
+                                            // TODO: Show a visual to the user
+                                            console.log(e);
+                                        });
+                                },
+                                role: "button"
+                            },
+                            "Add"
+                        )
+                    ]),                   
+                ]),
+                m("div.row", [" "]),                
+                m("div.row", ["Remove Task List"]),
+                m("div.row", [
+                    m("div.dropdown.mr-2", [
+                        m(
+                            "button.btn.btn-primary.dropdown-toggle.shadow-sm[data-toggle='dropdown'][aria-haspopup='true'][aria-expanded='false']",
+                            {
+                                type: "button",
+                                id: "dropdownMenuButton"
+                            },
+                            [
+                                m("i.fas.fa-clock.fa-md.text-white-50.mr-2"),
+                                m("small", `Select List to Remove`)
+                            ]
+                        ),
+                        m(
+                            'div.dropdown-menu[aria-labelledby="dropdownMenuButton"]',
+                            ConfigState.task_lists.map(r => {
+                                return m(
+                                    "a.btn.dropdown-item",
+                                    {
+                                        onclick: () => {
+                                            //Requrest remove here
+                                            m.request({
+                                                method: "GET",
+                                                url: "/api/v1/users/current/config/tasklist/remove/" + `${r.tl_name}`,
+                                                background: true,
+                                                responseType:"json",
+                                                headers: {
+                                                    authorization: auth.getHeaderToken()
+                                                }
+                                            })
+                                                .then(function (r) {
+                                                    ConfigState.fetchCurrentConfig();
+                                                })
+                                                .catch(function (e) {
+                                                    // TODO: Show a visual to the user
+                                                    console.log(e);
+                                                });
+                                        }
+                                    },
+                                    `${r.tl_name}`
+                                );
+                            })
+                        )
+                    ])
+                ])
+            ]),
+        ]),
+    );
+}
+
+function context_table() {
+    return m("table", [
+        m("tr", [
+            m("th", "Context Name"), m("td", "_______|")
+        ]),
+		ConfigState.contexts.map(function(item) {
+			return m("tr", [
+				m("td", `${item.c_name}`), m("td", " ")
+			])
+		})
+    ]);
+};
+
+function mkContextConfigBox() {
+    return cards.mkCardContainer(
+        "Task Contexts",
+        m("div.row", [
+            context_table(),
+            m("div.col.mr-2", {style: {textAlign: "right", margin: "0px"}}, [
+                m("div.row", ["Add New Context"]),
+                m("div.row", [
+                    m('input',{
+                        id: "newContextNameTextbox",
+                        type: "text",
+                        onchange: newInput => {
+                            console.log("New Context Input: " + newInput.target.value)
+                        }
+                    }),
+                    m("div.mr-1", [
+                        m(
+                            "button.btn.btn-primary[title='Add New Task List']",
+                            {
+                                onclick: e => {
+                                    let new_context = document.getElementById("newContextNameTextbox").value;
+                                    //ConfigState.contextes.push( {context_name: String(new_context)} );
+                                    //TODO: Request Add Here instead of local change
+                                    m.request({
+                                        method: "GET",
+                                        url: "/api/v1/users/current/config/context/add/" + String(new_context), 
+                                        background: true,
+                                        responseType:"json",
+                                        headers: {
+                                            authorization: auth.getHeaderToken()
+                                        }
+                                    })
+                                        .then(function (r) {
+                                            ConfigState.fetchCurrentConfig();
+                                        })
+                                        .catch(function (e) {
+                                            // TODO: Show a visual to the user
+                                            console.log(e);
+                                        });
+                                },
+                                role: "button"
+                            },
+                            "Add"
+                        )
+                    ]),                   
+                ]),
+                m("div.row", [" "]),                
+                m("div.row", ["Remove Context"]),
+                m("div.row", [
+                    m("div.dropdown.mr-2", [
+                        m(
+                            "button.btn.btn-primary.dropdown-toggle.shadow-sm[data-toggle='dropdown'][aria-haspopup='true'][aria-expanded='false']",
+                            {
+                                type: "button",
+                                id: "dropdownMenuButton"
+                            },
+                            [
+                                m("i.fas.fa-clock.fa-md.text-white-50.mr-2"),
+                                m("small", `Select Context to Remove`)
+                            ]
+                        ),
+                        m(
+                            'div.dropdown-menu[aria-labelledby="dropdownMenuButton"]',
+                            ConfigState.contexts.map(r => {
+                                return m(
+                                    "a.btn.dropdown-item",
+                                    {
+                                        onclick: () => {
+                                            //Requrest remove here
+                                            m.request({
+                                                method: "GET",
+                                                url: "/api/v1/users/current/config/context/remove/" + `${r.c_name}`,
+                                                background: true,
+                                                responseType:"json",
+                                                headers: {
+                                                    authorization: auth.getHeaderToken()
+                                                }
+                                            })
+                                                .then(function (r) {
+                                                    ConfigState.fetchCurrentConfig();
+                                                })
+                                                .catch(function (e) {
+                                                    // TODO: Show a visual to the user
+                                                    console.log(e);
+                                                });
+                                        }
+                                    },
+                                    `${r.c_name}`
                                 );
                             })
                         )
@@ -1415,32 +1748,35 @@ export default {
     // ]);
 
     return [
-      m("div.d-sm-flex.mb-4", [
-          m("h1.h3.mb-0.mr-auto.text-gray-800", "Task Configuration Setup")]),
-        // LocalState.currentProject ? LocalState.currentProject : "Projects"
-        //      )
-        //      toolbar,n
-        //        m("div.row", mkTopStatRow()),
-      m("div.row", [
-          m("div.col-xl-6", mkClassConfigBox()),
-          m("div.col-xl-6", mkTaskStateConfigBox()),
-      ]),
-        m("div.d-sm-flex.mb-4", [ m("h1.h3.mb-0.mr-auto.text-gray-800", "Category Configuration Setup")]),
+      m("div.d-sm-flex.mb-4", [m("h1.h3.mb-0.mr-auto.text-gray-800", "GTD Task & Project Configuration")]),
+        m("div.row", [
+            m("div.col-xl-6", mkClassConfigBox()),
+            m("div.col-xl-6", mkTaskStateConfigBox()),
+        ]),
+        m("div.row", [
+            m("div.col-xl-6", mkProjListsConfigBox()),
+            m("div.col-xl-6", mkTaskListsConfigBox()),
+        ]),
+        m("div.row", [
+            m("div.col-xl-6", mkContextConfigBox()),
+        ]),
+        
+        m("div.d-sm-flex.mb-4", [ m("h1.h3.mb-0.mr-auto.text-gray-800", "Category Configuration")]),
         m("div.col-xl-12",[         
             m("div.row", [ mkMajCatConfigBox() ]),
             m("div.row", [ mkSubCatConfigBox() ]),
             m("div.row", [ mkSubsubCatConfigBox() ]),
         ]),
-      m("div.d-sm-flex.mb-4", [
-          m("h1.h3.mb-0.mr-auto.text-gray-800", "Goal Configuration Setup")]),
-      m("div.row", [
-         m("div.col-xl-6", mkGoalClassConfigBox())
-      ]),        
-      // m("div.row", [
-      //   m("div.col-xl-6", mkWeekDayRadar()),
-      //   m("div.col-xl-6", mkHourDistribution())
-      // ]),
-      // m("div.row", [m("div.col-xl-12", mkFileChart())])
+        m("div.d-sm-flex.mb-4", [
+          m("h1.h3.mb-0.mr-auto.text-gray-800", "Goal Configuration")]),
+        m("div.row", [
+            m("div.col-xl-6", mkGoalClassConfigBox())
+        ]),        
+        // m("div.row", [
+        //   m("div.col-xl-6", mkWeekDayRadar()),
+        //   m("div.col-xl-6", mkHourDistribution())
+        // ]),
+        // m("div.row", [m("div.col-xl-12", mkFileChart())])
     ];
   }
 };

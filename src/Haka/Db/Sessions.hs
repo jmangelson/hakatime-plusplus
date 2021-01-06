@@ -28,7 +28,13 @@ module Haka.Db.Sessions
     updateSubCatConfig,
     getSubCatList,
     updateSubSubCatConfig,
-    getSubSubCatList,            
+    getSubSubCatList,
+    updateProjListConfig,
+    getProjListList,
+    updateTaskListConfig,
+    getTaskListList,
+    updateContextConfig,
+    getContextList,
   )
 where
 
@@ -52,7 +58,10 @@ import Haka.Types
     TokenData (..),
     MajorCategoriesRow (..),
     SubCategoriesRow (..),
-    SubSubCategoriesRow (..),  
+    SubSubCategoriesRow (..),
+    ProjectListsRow (..),
+    TaskListsRow (..),
+    ContextsRow (..),     
   )
 import qualified Haka.Utils as Utils
 import Hasql.Session (Session, statement)
@@ -255,3 +264,42 @@ updateSubSubCatConfig user req_type class_name maj_cat_id sub_cat_id = do
 getSubSubCatList :: Text -> Session [SubSubCategoriesRow]
 getSubSubCatList user = do
    trace("In getSubSubCatList, calling Statements.getSubSubCatList, with user=" ++ show user) (statement user Statements.getSubSubCatList)
+
+updateProjListConfig :: Text -> Text -> Text -> Session ()
+updateProjListConfig user req_type class_name = do
+  if trace("In updateProjListConfig, with req_type=" ++ show req_type ++ ", class=" ++ show class_name ++ ", user= " ++ show user) (req_type == "add")
+    then do
+         trace ("In updateProjListConfig, calling Statements.insertProjList with class=" ++ show class_name ++ ", user= " ++ show user) (statement (class_name, user) Statements.insertProjList)
+    else if req_type == "remove"
+           then statement (class_name, user) Statements.deleteProjList
+           else statement ("none", "none") Statements.deleteProjList
+
+getProjListList :: Text -> Session [ProjectListsRow]
+getProjListList user = do
+   trace("In getProjListList, calling Statements.getProjListList, with user=" ++ show user) (statement user Statements.getProjListList)
+
+updateTaskListConfig :: Text -> Text -> Text -> Session ()
+updateTaskListConfig user req_type class_name = do
+  if trace("In updateTaskListConfig, with req_type=" ++ show req_type ++ ", class=" ++ show class_name ++ ", user= " ++ show user) (req_type == "add")
+    then do
+         trace ("In updateTaskListConfig, calling Statements.insertTaskList with class=" ++ show class_name ++ ", user= " ++ show user) (statement (class_name, user) Statements.insertTaskList)
+    else if req_type == "remove"
+           then statement (class_name, user) Statements.deleteTaskList
+           else statement ("none", "none") Statements.deleteTaskList
+
+getTaskListList :: Text -> Session [TaskListsRow]
+getTaskListList user = do
+   trace("In getTaskListList, calling Statements.getTaskListList, with user=" ++ show user) (statement user Statements.getTaskListList)
+
+updateContextConfig :: Text -> Text -> Text -> Session ()
+updateContextConfig user req_type class_name = do
+  if trace("In updateContextConfig, with req_type=" ++ show req_type ++ ", class=" ++ show class_name ++ ", user= " ++ show user) (req_type == "add")
+    then do
+         trace ("In updateContextConfig, calling Statements.insertContext with class=" ++ show class_name ++ ", user= " ++ show user) (statement (class_name, user) Statements.insertContext)
+    else if req_type == "remove"
+           then statement (class_name, user) Statements.deleteContext
+           else statement ("none", "none") Statements.deleteContext
+
+getContextList :: Text -> Session [ContextsRow]
+getContextList user = do
+   trace("In getContextList, calling Statements.getContextList, with user=" ++ show user) (statement user Statements.getContextList)      

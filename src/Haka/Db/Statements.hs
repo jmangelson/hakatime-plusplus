@@ -40,7 +40,16 @@ module Haka.Db.Statements
     deleteSubCat,
     getSubSubCatList,
     insertSubSubCat,
-    deleteSubSubCat    
+    deleteSubSubCat,
+    getProjListList,
+    insertProjList,
+    deleteProjList,
+    getTaskListList,
+    insertTaskList,
+    deleteTaskList,
+    getContextList,
+    insertContext,
+    deleteContext,          
   )
 where
 
@@ -64,7 +73,10 @@ import Haka.Types
     TokenData (..),
     MajorCategoriesRow (..),
     SubCategoriesRow (..),
-    SubSubCategoriesRow (..),    
+    SubSubCategoriesRow (..),
+    ProjectListsRow (..),
+    TaskListsRow (..),
+    ContextsRow (..),      
   )
 import qualified Hasql.Decoders as D
 import qualified Hasql.Encoders as E
@@ -740,4 +752,141 @@ deleteSubSubCat = Statement query params D.noResult True
         (E.param (E.nonNullable E.text))
         (E.param (E.nonNullable E.int8))
         (E.param (E.nonNullable E.int8))                
-        (E.param (E.nonNullable E.text))           
+        (E.param (E.nonNullable E.text))
+
+
+getProjListList :: Statement (Text) [ProjectListsRow]
+getProjListList = Statement query (E.param (E.nonNullable E.text)) result True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        SELECT id, name, owner FROM project_lists WHERE owner = $1;
+      |]
+    plRow :: D.Row ProjectListsRow
+    plRow =
+      ProjectListsRow
+        <$> (D.column . D.nonNullable) D.int8 --D.numeric
+        <*> (D.column . D.nonNullable) D.text
+        <*> (D.column . D.nonNullable) D.text        
+    result :: D.Result [ProjectListsRow]
+    result = D.rowList plRow    
+
+insertProjList :: Statement (Text, Text) ()
+insertProjList = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        INSERT INTO project_lists (name, owner) VALUES ( $1, $2 ) ON CONFLICT (name, owner) DO NOTHING;
+      |]
+    params :: E.Params (Text, Text)
+    params =
+      contrazip2
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.text))
+
+deleteProjList :: Statement (Text, Text) ()
+deleteProjList = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        DELETE FROM project_lists WHERE name = $1 AND owner = $2;
+      |]
+    params :: E.Params (Text, Text)
+    params =
+      contrazip2
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.text))
+
+getTaskListList :: Statement (Text) [TaskListsRow]
+getTaskListList = Statement query (E.param (E.nonNullable E.text)) result True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        SELECT id, name, owner FROM task_lists WHERE owner = $1;
+      |]
+    tlRow :: D.Row TaskListsRow
+    tlRow =
+      TaskListsRow
+        <$> (D.column . D.nonNullable) D.int8 --D.numeric
+        <*> (D.column . D.nonNullable) D.text
+        <*> (D.column . D.nonNullable) D.text        
+    result :: D.Result [TaskListsRow]
+    result = D.rowList tlRow    
+
+insertTaskList :: Statement (Text, Text) ()
+insertTaskList = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        INSERT INTO task_lists (name, owner) VALUES ( $1, $2 ) ON CONFLICT (name, owner) DO NOTHING;
+      |]
+    params :: E.Params (Text, Text)
+    params =
+      contrazip2
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.text))
+
+deleteTaskList :: Statement (Text, Text) ()
+deleteTaskList = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        DELETE FROM task_lists WHERE name = $1 AND owner = $2;
+      |]
+    params :: E.Params (Text, Text)
+    params =
+      contrazip2
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.text))        
+
+getContextList :: Statement (Text) [ContextsRow]
+getContextList = Statement query (E.param (E.nonNullable E.text)) result True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        SELECT id, name, owner FROM contexts WHERE owner = $1;
+      |]
+    cRow :: D.Row ContextsRow
+    cRow =
+      ContextsRow
+        <$> (D.column . D.nonNullable) D.int8 --D.numeric
+        <*> (D.column . D.nonNullable) D.text
+        <*> (D.column . D.nonNullable) D.text        
+    result :: D.Result [ContextsRow]
+    result = D.rowList cRow    
+
+insertContext :: Statement (Text, Text) ()
+insertContext = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        INSERT INTO contexts (name, owner) VALUES ( $1, $2 ) ON CONFLICT (name, owner) DO NOTHING;
+      |]
+    params :: E.Params (Text, Text)
+    params =
+      contrazip2
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.text))
+
+deleteContext :: Statement (Text, Text) ()
+deleteContext = Statement query params D.noResult True
+  where
+    query :: Bs.ByteString
+    query =
+      [r|
+        DELETE FROM contexts WHERE name = $1 AND owner = $2;
+      |]
+    params :: E.Params (Text, Text)
+    params =
+      contrazip2
+        (E.param (E.nonNullable E.text))
+        (E.param (E.nonNullable E.text))        
+

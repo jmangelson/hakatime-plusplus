@@ -22,8 +22,7 @@ module Haka.Types
     RegisteredUser (..),
     StatRow (..),
     TimelineRow (..),
-    ProjectStatRow
-    (..),
+    ProjectStatRow (..),
     AppCtx (..),
     LogState (..),
     AppM,
@@ -34,7 +33,10 @@ module Haka.Types
     ConfigPayload (..),
     MajorCategoriesRow (..),
     SubCategoriesRow (..),
-    SubSubCategoriesRow (..),
+    SubSubCategoriesRow (..),    
+    ProjectListsRow (..),
+    TaskListsRow (..),
+    ContextsRow (..),    
   )
 where
 
@@ -470,6 +472,43 @@ instance ToJSON SubSubCategoriesRow
 instance FromJSON SubSubCategoriesRow
 
 
+-- Project Lists Row
+data ProjectListsRow = ProjectListsRow
+  {
+    pl_id :: Int64,
+    pl_name :: Text,
+    pl_owner :: Text
+  }
+  deriving (Eq, Show, Generic)
+
+instance ToJSON ProjectListsRow
+instance FromJSON ProjectListsRow
+
+-- Task Lists Row
+data TaskListsRow = TaskListsRow
+  {
+    tl_id :: Int64,
+    tl_name :: Text,
+    tl_owner :: Text
+  }
+  deriving (Eq, Show, Generic)
+
+instance ToJSON TaskListsRow
+instance FromJSON TaskListsRow
+
+-- Contexts Row
+data ContextsRow = ContextsRow
+  {
+    c_id :: Int64,
+    c_name :: Text,
+    c_owner :: Text
+  }
+  deriving (Eq, Show, Generic)
+
+instance ToJSON ContextsRow
+instance FromJSON ContextsRow
+
+
 -- Full Configuration Payload
 data ConfigPayload = ConfigPayload
   {
@@ -479,11 +518,15 @@ data ConfigPayload = ConfigPayload
     sub_categories :: [SubCategoriesRow],
     sub_sub_categories :: [SubSubCategoriesRow],
     task_states :: [Text],
-    goal_classes :: [Text]
+    goal_classes :: [Text],
+    project_lists :: [ProjectListsRow],
+    task_lists :: [TaskListsRow],
+    contexts :: [ContextsRow]    
   }
   deriving (Show, Generic)
 
 instance ToJSON ConfigPayload
 instance FromJSON ConfigPayload
+
 
 

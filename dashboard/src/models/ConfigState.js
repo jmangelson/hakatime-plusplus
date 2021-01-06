@@ -11,7 +11,10 @@ const Model = {
     goal_classes: [],
     major_categories: null,
     sub_categories: null,
-    subsub_categories: null,    
+    subsub_categories: null,
+    project_lists: null,
+    task_lists: null,
+    contexts: null,    
     obj: null,
     initialized: false,
     fetched: false,
@@ -57,14 +60,20 @@ const Model = {
                 Model.goal_classes = obj.goal_classes;
                 Model.major_categories = obj.major_categories;
                 Model.sub_categories = obj.sub_categories;
-                Model.subsub_categories = obj.sub_sub_categories;                
+                Model.subsub_categories = obj.sub_sub_categories;
+                Model.project_lists = obj.project_lists;
+                Model.task_lists = obj.task_lists;
+                Model.contexts = obj.contexts;                
                 Model.obj = obj;
 
                 console.log("Fetched Config.");
                 console.log("Obj: " + Model.obj);
                 console.log("Major Cat: " + Model.major_categories);
                 console.log("Sub Cat: " + Model.sub_categories);
-                console.log("Sub-Sub Cat: " + Model.subsub_categories);                
+                console.log("Sub-Sub Cat: " + Model.subsub_categories);
+                console.log("Proj Lists: " + Model.project_lists);
+                console.log("Task Lists: " + Model.task_lists);
+                console.log("Contexts: " + Model.contexts);
                 Model.fetched = true;
             })
             .catch(err =>

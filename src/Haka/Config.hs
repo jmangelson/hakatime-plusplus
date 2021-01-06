@@ -23,7 +23,7 @@ import Haka.AesonHelpers (noPrefixOptions)
 import qualified Haka.DatabaseOperations as DbOps
 import Haka.Errors (missingAuthError)
 import qualified Haka.Errors as Err
-import Haka.Types (ApiToken (..), AppM, ProjectStatRow (..), ConfigPayload (..), MajorCategoriesRow (..), SubCategoriesRow (..), SubSubCategoriesRow (..), pool)
+import Haka.Types (ApiToken (..), AppM, ProjectStatRow (..), ConfigPayload (..), MajorCategoriesRow (..), SubCategoriesRow (..), SubSubCategoriesRow (..), ProjectListsRow (..), TaskListsRow (..), ContextsRow (..), pool)
 import Haka.Utils (defaultLimit, sum')
 import Polysemy (runM)
 import Polysemy.Error (runError)
@@ -52,9 +52,9 @@ instance FromJSON ConfigResponse
 
 
 -- Combined API/Server
-type API = Configuration :<|> ClassConfig :<|> MajCatConfig :<|> TaskStateConfig :<|> GoalClassConfig :<|> SubCatConfig :<|> SubSubCatConfig
+type API = Configuration :<|> ClassConfig :<|> MajCatConfig :<|> TaskStateConfig :<|> GoalClassConfig :<|> SubCatConfig :<|> SubSubCatConfig :<|> ProjListConfig :<|> TaskListConfig :<|> ContextConfig
 
-server = configurationHandler :<|> classConfigHandler :<|> majCatConfigHandler :<|> taskStateConfigHandler :<|> goalClassConfigHandler :<|> subCatConfigHandler :<|> subSubCatConfigHandler
+server = configurationHandler :<|> classConfigHandler :<|> majCatConfigHandler :<|> taskStateConfigHandler :<|> goalClassConfigHandler :<|> subCatConfigHandler :<|> subSubCatConfigHandler :<|> projListConfigHandler :<|> taskListConfigHandler :<|> contextConfigHandler 
 
 
 -- Configuration Payload API and Server
@@ -128,11 +128,38 @@ configurationHandler (Just token) = do
         
   sub_sub_cat_list <- either Err.logError pure sub_sub_cat_res
 
+  proj_list_res <-
+    runM
+      . embedToMonadIO
+      . runError
+      $ DbOps.interpretDatabaseIO $
+        DbOps.getProjListList p token
+        
+  proj_list_list <- either Err.logError pure proj_list_res
 
-  return $ toConfigPayload classes_list maj_cat_list sub_cat_list sub_sub_cat_list task_state_list goal_class_list
+  task_list_res <-
+    runM
+      . embedToMonadIO
+      . runError
+      $ DbOps.interpretDatabaseIO $
+        DbOps.getTaskListList p token
+        
+  task_list_list <- either Err.logError pure task_list_res
 
-toConfigPayload :: [Text] -> [MajorCategoriesRow] -> [SubCategoriesRow] -> [SubSubCategoriesRow] -> [Text] -> [Text] -> ConfigPayload
-toConfigPayload classes_list maj_cat_list sub_cat_list sub_sub_cat_list task_state_list goal_class_list =
+  context_res <-
+    runM
+      . embedToMonadIO
+      . runError
+      $ DbOps.interpretDatabaseIO $
+        DbOps.getContextList p token
+        
+  context_list <- either Err.logError pure context_res
+
+
+  return $ toConfigPayload classes_list maj_cat_list sub_cat_list sub_sub_cat_list task_state_list goal_class_list proj_list_list task_list_list context_list
+
+toConfigPayload :: [Text] -> [MajorCategoriesRow] -> [SubCategoriesRow] -> [SubSubCategoriesRow] -> [Text] -> [Text] -> [ProjectListsRow] -> [TaskListsRow] -> [ContextsRow] -> ConfigPayload
+toConfigPayload classes_list maj_cat_list sub_cat_list sub_sub_cat_list task_state_list goal_class_list proj_list_list task_list_list context_list =
   ConfigPayload
   {
     classes = classes_list,
@@ -140,7 +167,10 @@ toConfigPayload classes_list maj_cat_list sub_cat_list sub_sub_cat_list task_sta
     sub_categories = sub_cat_list,
     sub_sub_categories = sub_sub_cat_list, 
     task_states = task_state_list,
-    goal_classes = goal_class_list
+    goal_classes = goal_class_list,
+    project_lists = proj_list_list,
+    task_lists = task_list_list,
+    contexts = context_list
   }
 
 
@@ -349,5 +379,104 @@ subSubCatConfigHandler reqType subSubCatName majCatId subCatId (Just token) = do
 
   output <- either Err.logError pure res
 
-  return defaultConfigResponse    
+  return defaultConfigResponse
+
+-- ProjList Config API and Server
+type ProjListConfig =
+  "api"
+    :> "v1"
+    :> "users"
+    :> "current"
+    :> "config"
+    :> "projlist"
+    :> Capture "req-type" Text
+    :> Capture "proj-list-name" Text
+    :> Header "Authorization" ApiToken
+    :> Get '[JSON] ConfigResponse
+
+
+projListConfigHandler ::
+  Text ->
+  Text ->
+  Maybe ApiToken ->
+  AppM ConfigResponse
+projListConfigHandler _ _ Nothing = throw missingAuthError
+projListConfigHandler reqType projListName (Just token) = do
+  p <- asks pool
+  res <-
+    runM
+      . embedToMonadIO
+      . runError
+      $ DbOps.interpretDatabaseIO $
+        DbOps.updateProjListConfiguration p token reqType projListName
+
+  output <- either Err.logError pure res
+
+  return defaultConfigResponse
+
+-- TaskList Config API and Server
+type TaskListConfig =
+  "api"
+    :> "v1"
+    :> "users"
+    :> "current"
+    :> "config"
+    :> "tasklist"
+    :> Capture "req-type" Text
+    :> Capture "task-list-name" Text
+    :> Header "Authorization" ApiToken
+    :> Get '[JSON] ConfigResponse
+
+
+taskListConfigHandler ::
+  Text ->
+  Text ->
+  Maybe ApiToken ->
+  AppM ConfigResponse
+taskListConfigHandler _ _ Nothing = throw missingAuthError
+taskListConfigHandler reqType taskListName (Just token) = do
+  p <- asks pool
+  res <-
+    runM
+      . embedToMonadIO
+      . runError
+      $ DbOps.interpretDatabaseIO $
+        DbOps.updateTaskListConfiguration p token reqType taskListName
+
+  output <- either Err.logError pure res
+
+  return defaultConfigResponse
+
+  -- Context Config API and Server
+type ContextConfig =
+  "api"
+    :> "v1"
+    :> "users"
+    :> "current"
+    :> "config"
+    :> "context"
+    :> Capture "req-type" Text
+    :> Capture "context-name" Text
+    :> Header "Authorization" ApiToken
+    :> Get '[JSON] ConfigResponse
+
+
+contextConfigHandler ::
+  Text ->
+  Text ->
+  Maybe ApiToken ->
+  AppM ConfigResponse
+contextConfigHandler _ _ Nothing = throw missingAuthError
+contextConfigHandler reqType contextName (Just token) = do
+  p <- asks pool
+  res <-
+    runM
+      . embedToMonadIO
+      . runError
+      $ DbOps.interpretDatabaseIO $
+        DbOps.updateContextConfiguration p token reqType contextName
+
+  output <- either Err.logError pure res
+
+  return defaultConfigResponse  
 
